@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Body, Req } from '@nestjs/common'
 import { CreateFileDto } from './dto/create-file.dto'
 import { FilesService } from './files.service'
-import { File } from './interfaces/file.interface'
+import Entry from './interfaces/entry.interface'
+import {FileStorage, Visibility, DirectoryListing, StatEntry} from '@flystorage/file-storage';
 
 @Controller('files')
 export class FilesController { 
@@ -20,12 +21,8 @@ export class FilesController {
     }*/
 
     @Get('get-user-files')
-    async getUserFiles(@Req() request: Request): Promise<File[]> { 
-        return this.filesService.readAllFromDirectory("public");
-    }
-
-    @Get()
-    async getUserFiles2(@Req() request: Request): Promise<File[]> { 
-        return this.filesService.readAllFromDirectory("public");
+    async getUserFiles(@Req() request: Request): Promise<Entry[]> { 
+        //#this.filesService.readAllFromDirectory("");
+        return this.filesService.getDirectory();
     }
 }

@@ -1,34 +1,42 @@
 import { Injectable } from '@nestjs/common'
 import { plainToClass } from 'class-transformer'
-import { File } from './interfaces/file.interface'
+import Entry from './interfaces/entry.interface'
 import * as fs from 'fs'
+import * as console from 'console'
+import {resolve} from 'node:path';
+import {createReadStream} from 'node:fs';
+import {FileStorage, Visibility, DirectoryListing, StatEntry} from '@flystorage/file-storage';
+import {LocalStorageAdapter} from '@flystorage/local-fs'
 
 @Injectable()
 export class FilesService {
-    private readonly files: File[] = []
+    private readonly files: Entry[] = []
+
+    private rootDirectory: string = resolve(process.cwd(), 'drive');
+    private currentDirectory: string = "";
+    private storage: FileStorage = new FileStorage(new LocalStorageAdapter(this.rootDirectory));
 
     create(file: File) {
-        this.files.push(file);
+        //this.files.push(file);
     }
 
-    async readAllFromDirectory(path: string): Promise<File[]> {
-        try {
-            const fileNames = await fs.promises.readdir(path);
-            return await this.mapAllFromDirectory(path, fileNames);
-        } catch (err) {
-            throw new Error(`Error reading directory at ${path}: ${err.message}`);
+    async getDirectory(path: string = ""): Promise<Entry[]> {
+        this.currentDirectory = path;
+        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(this.currentDirectory, {deep: true});
+
+        for await (const item of contentsAsAsyncGenerator) {
+            const entry: Entry = { 
+                path: item.path,
+                type: item.type,
+                isFile: item.isFile,
+                isDirectory: item.isDirectory,
+                isImage: await this.isImage(item.path)
+            }
+
+            this.files.push(entry);
         }
-    }
 
-    /*
-    findAll(): File[] { 
         return this.files;
-    }
-    */
-
-    private async getMimeType(filePath) {
-        const mime = await import('mime-types');
-        const mimeType = mime.lookup(filePath);
     }
 
     private async isImage(filePath) {
@@ -38,33 +46,4 @@ export class FilesService {
         console.log(allowedExtensions.includes(extname));
         return allowedExtensions.includes(extname);
     }
-
-    private async mapAllFromDirectory(path: string, fileNames: string[]): Promise<File[]> {
-        return Promise.all(
-            fileNames.map(async (fileName) => {
-                const filePath = `${path}/${fileName}`;
-                const stats = await fs.promises.stat(filePath);
-
-                return {
-                    name: fileName,
-                    path: filePath.replace("public/", ""),
-                    //mimeType: mimeType,
-                    isImage: await this.isImage(filePath),
-                    size: stats.size,
-                    createdAt: stats.birthtime,
-                }
-            })
-        );
-    }
-
-    /*
-    private async mapFile(file: string[]): Promise<File> {
-        // Map user to DTO (if needed)
-        const fileDTO = new FileDTO();
-        fileDTO.id = file['id'];
-        fileDTO.name = file['name'];
-        fileDTO.email = file.email;
-
-        return 
-    }*/
 }
