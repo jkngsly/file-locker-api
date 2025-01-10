@@ -5,8 +5,9 @@ import * as fs from 'fs'
 import * as console from 'console'
 import {resolve} from 'node:path';
 import {createReadStream} from 'node:fs';
-import {FileStorage, Visibility, DirectoryListing, StatEntry} from '@flystorage/file-storage';
+import {FileStorage, Visibility, DirectoryListing, StatEntry } from '@flystorage/file-storage';
 import {LocalStorageAdapter} from '@flystorage/local-fs'
+import { Readable } from 'stream';
 
 @Injectable()
 export class FilesService {
@@ -25,12 +26,17 @@ export class FilesService {
         const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(this.currentDirectory, {deep: true});
 
         for await (const item of contentsAsAsyncGenerator) {
-            const entry: Entry = { 
+            let entry: Entry = { 
                 path: item.path,
+                fullPath: this.currentDirectory + '/' + item.path,
                 type: item.type,
                 isFile: item.isFile,
                 isDirectory: item.isDirectory,
                 isImage: await this.isImage(item.path)
+            }
+
+            if(entry.isFile && entry.isImage) { 
+                //entry.thumbnail = 
             }
 
             this.files.push(entry);
@@ -39,6 +45,7 @@ export class FilesService {
         return this.files;
     }
 
+    // TODO: move to client
     private async isImage(filePath) {
         const path = await import('path');
         const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];

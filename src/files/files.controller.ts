@@ -22,7 +22,6 @@ export class FilesController {
 
     @Get('get-user-files')
     async getUserFiles(@Req() request: Request): Promise<Entry[]> { 
-        //#this.filesService.readAllFromDirectory("");
         return this.filesService.getDirectory();
     }
 }
