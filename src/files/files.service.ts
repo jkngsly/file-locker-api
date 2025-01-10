@@ -5,9 +5,11 @@ import * as fs from 'fs'
 import * as console from 'console'
 import {resolve} from 'node:path';
 import {createReadStream} from 'node:fs';
-import {FileStorage, Visibility, DirectoryListing, StatEntry } from '@flystorage/file-storage';
+import {FileStorage, Visibility, DirectoryListing, StatEntry, UnableToWriteFile } from '@flystorage/file-storage';
 import {LocalStorageAdapter} from '@flystorage/local-fs'
 import { Readable } from 'stream';
+import { Express } from 'express'
+import { unlink } from 'node:fs';
 
 @Injectable()
 export class FilesService {
@@ -17,8 +19,31 @@ export class FilesService {
     private currentDirectory: string = "";
     private storage: FileStorage = new FileStorage(new LocalStorageAdapter(this.rootDirectory));
 
-    create(file: File) {
-        //this.files.push(file);
+    async upload(files: Array<Express.Multer.File>, directory: string) {
+        files.forEach((file: Express.Multer.File, index) => {
+            this.create(file, directory)
+            // Remove the file from /tmp
+            .then(() => {
+                unlink(file.path, (err) => {
+                    if (err) throw err;
+                });
+            });
+        });
+    }
+
+    async create(file: Express.Multer.File, directory: string): Promise<boolean> {
+        try {
+            // TODO: Check for duplicates
+            const content = fs.createReadStream(file.path);
+            await this.storage.write(file.originalname, content);
+            return true;
+        } catch (err) {
+            if (err instanceof UnableToWriteFile) {
+                // handle error
+                console.log(err);
+            }
+        }
+
     }
 
     async getDirectory(path: string = ""): Promise<Entry[]> {
