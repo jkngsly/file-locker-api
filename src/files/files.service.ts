@@ -4,10 +4,10 @@ import { File } from './interfaces/file.interface'
 import * as fs from 'fs'
 
 @Injectable()
-export class FilesService { 
+export class FilesService {
     private readonly files: File[] = []
 
-    create(file: File) { 
+    create(file: File) {
         this.files.push(file);
     }
 
@@ -15,7 +15,7 @@ export class FilesService {
         try {
             const fileNames = await fs.promises.readdir(path);
             return await this.mapAllFromDirectory(path, fileNames);
-        } catch (err) { 
+        } catch (err) {
             throw new Error(`Error reading directory at ${path}: ${err.message}`);
         }
     }
@@ -26,18 +26,33 @@ export class FilesService {
     }
     */
 
+    private async getMimeType(filePath) {
+        const mime = await import('mime-types');
+        const mimeType = mime.lookup(filePath);
+    }
+
+    private async isImage(filePath) {
+        const path = await import('path');
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
+        const extname = path.extname(filePath).toLowerCase();
+        console.log(allowedExtensions.includes(extname));
+        return allowedExtensions.includes(extname);
+    }
+
     private async mapAllFromDirectory(path: string, fileNames: string[]): Promise<File[]> {
         return Promise.all(
-            fileNames.map(async (fileName) => { 
-              const filePath = `${path}/${fileName}`;
-              const stats = await fs.promises.stat(filePath);
-              
-              return {
-                name: fileName,
-                path: filePath,
-                size: stats.size,
-                createdAt: stats.birthtime,
-              }
+            fileNames.map(async (fileName) => {
+                const filePath = `${path}/${fileName}`;
+                const stats = await fs.promises.stat(filePath);
+
+                return {
+                    name: fileName,
+                    path: filePath.replace("public/", ""),
+                    //mimeType: mimeType,
+                    isImage: await this.isImage(filePath),
+                    size: stats.size,
+                    createdAt: stats.birthtime,
+                }
             })
         );
     }
