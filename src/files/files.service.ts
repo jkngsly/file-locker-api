@@ -1,20 +1,14 @@
 import { Injectable } from '@nestjs/common'
-import { plainToClass } from 'class-transformer'
 import Entry from './interfaces/entry.interface'
 import * as fs from 'fs'
 import * as console from 'console'
 import {resolve} from 'node:path';
-import {createReadStream} from 'node:fs';
-import {FileStorage, Visibility, DirectoryListing, StatEntry, UnableToWriteFile } from '@flystorage/file-storage';
+import {FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/file-storage';
 import {LocalStorageAdapter} from '@flystorage/local-fs'
-import { Readable } from 'stream';
-import { Express } from 'express'
 import { unlink } from 'node:fs';
 
 @Injectable()
 export class FilesService {
-    private readonly files: Entry[] = []
-
     private rootDirectory: string = resolve(process.cwd(), 'drive');
     private currentDirectory: string = "";
     private storage: FileStorage = new FileStorage(new LocalStorageAdapter(this.rootDirectory));
@@ -39,7 +33,6 @@ export class FilesService {
             return true;
         } catch (err) {
             if (err instanceof UnableToWriteFile) {
-                // handle error
                 console.log(err);
             }
         }
@@ -48,9 +41,14 @@ export class FilesService {
 
     async getDirectory(path: string = ""): Promise<Entry[]> {
         this.currentDirectory = path;
-        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(this.currentDirectory, {deep: true});
+        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(this.currentDirectory, {deep: false});
+
+        console.log(contentsAsAsyncGenerator);
+
+        let files: Entry[] = []
 
         for await (const item of contentsAsAsyncGenerator) {
+            
             let entry: Entry = { 
                 path: item.path,
                 fullPath: this.currentDirectory + '/' + item.path,
@@ -64,10 +62,12 @@ export class FilesService {
                 //entry.thumbnail = 
             }
 
-            this.files.push(entry);
+            files.push(entry);
         }
 
-        return this.files;
+        console.log(files);
+
+        return files;
     }
 
     // TODO: move to client
