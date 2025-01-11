@@ -10,7 +10,6 @@ import { unlink } from 'node:fs';
 @Injectable()
 export class FilesService {
     private rootDirectory: string = resolve(process.cwd(), 'drive');
-    private currentDirectory: string = "";
     private storage: FileStorage = new FileStorage(new LocalStorageAdapter(this.rootDirectory));
 
     async upload(files: Array<Express.Multer.File>, directory: string) {
@@ -36,14 +35,47 @@ export class FilesService {
                 console.log(err);
             }
         }
-
     }
 
-    async getDirectory(path: string = ""): Promise<Entry[]> {
-        this.currentDirectory = path;
-        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(this.currentDirectory, {deep: false});
+    private buildFolderHierarchy(folders) {
+        const root = [];
+    
+        folders.forEach(folder => {
+            const pathParts = folder.path.replace(/\\/g, '/').split('/');
+            let currentLevel = root;
+    
+            // Traverse or create the necessary parent folders
+            pathParts.forEach((part, index) => {
+                // Check if a folder at this level already exists
+                let existingFolder = currentLevel.find(f => f.path === part);
+                if (!existingFolder) {
+                    // If not, create a new folder object
+                    existingFolder = { fullPath: folder.path.replaceAll('\\', '/'), path: part, children: [] };
+                    currentLevel.push(existingFolder);
+                }
+                currentLevel = existingFolder.children;  // Move to the next level of the tree
+            });
+        });
+    
+        return root;
+    }
 
-        console.log(contentsAsAsyncGenerator);
+    async getAllDirectories(): Promise<Object[]> { 
+        const listing = this.storage.list("", { deep: true});
+
+        const entries = [];
+        for await (const entry of listing) {
+            if(entry.isDirectory) { 
+                entries.push(entry);
+            }
+        }
+
+        const directories = this.buildFolderHierarchy(entries);
+        return directories;
+    }
+
+    async get(path: string = "", type: string = ""): Promise<Entry[]> {
+        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path, {deep: type == "directory" ? true : false});
 
         let files: Entry[] = []
 
@@ -51,7 +83,6 @@ export class FilesService {
             
             let entry: Entry = { 
                 path: item.path,
-                fullPath: this.currentDirectory + '/' + item.path,
                 type: item.type,
                 isFile: item.isFile,
                 isDirectory: item.isDirectory,
@@ -62,10 +93,19 @@ export class FilesService {
                 //entry.thumbnail = 
             }
 
-            files.push(entry);
-        }
+            if(type.length) { 
+                if(type == "directory" && entry.isDirectory) {
+                    //console.log([type, item, "me"]);
+                    const t = await this.storage.list(entry.path, { deep: true});
+                    console.log(t);
+                    files.push(entry)
+                }
 
-        console.log(files);
+            } else { 
+                files.push(entry);
+            }
+
+        }
 
         return files;
     }

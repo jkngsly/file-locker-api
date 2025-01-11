@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, UseInterceptors, UploadedFiles } from '@nestjs/common'
+import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { UploadFilesDTO } from './dto/upload-files.dto'
 import { FilesService } from './files.service'
 import Entry from './interfaces/entry.interface'
@@ -23,10 +23,23 @@ async findAll(): Promise<File[]> {
     return this.filesService.findAll();
 }*/
 
-    @Get('get-user-files')
-    async getUserFiles(@Req() request: Request): Promise<Entry[]> {
-        return this.filesService.getDirectory();
+    @Get('get')
+    async getUserFiles(
+        @Req() request: Request,
+        @Query('type') type: string = "",
+        @Query('path') path: string = "")
+        : Promise<Entry[]> {
+        return this.filesService.get(path, type);
     }
+
+    
+    @Get('directories')
+    async getAllDirectories(
+        @Req() request: Request)
+        : Promise<Object[]> {
+       return this.filesService.getAllDirectories();
+    }
+
 
     @Post('upload')
     // TODO: Max file count setting
@@ -41,6 +54,7 @@ async findAll(): Promise<File[]> {
             }),
         }),
     )
+
     async uploadFiles(@Body() createFileDto: UploadFilesDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
         await this.filesService.upload(files, createFileDto.directory);
     }
