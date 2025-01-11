@@ -26,10 +26,9 @@ async findAll(): Promise<File[]> {
     @Get('get')
     async getUserFiles(
         @Req() request: Request,
-        @Query('type') type: string = "",
         @Query('path') path: string = "")
         : Promise<Entry[]> {
-        return this.filesService.get(path, type);
+        return this.filesService.get(path);
     }
 
     

@@ -74,34 +74,26 @@ export class FilesService {
         return directories;
     }
 
-    async get(path: string = "", type: string = ""): Promise<Entry[]> {
-        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path, {deep: type == "directory" ? true : false});
+    async get(path: string = ""): Promise<Entry[]> {
+        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path);
 
         let files: Entry[] = []
 
         for await (const item of contentsAsAsyncGenerator) {
             
-            let entry: Entry = { 
-                path: item.path,
-                type: item.type,
-                isFile: item.isFile,
-                isDirectory: item.isDirectory,
-                isImage: await this.isImage(item.path)
-            }
-
-            if(entry.isFile && entry.isImage) { 
-                //entry.thumbnail = 
-            }
-
-            if(type.length) { 
-                if(type == "directory" && entry.isDirectory) {
-                    //console.log([type, item, "me"]);
-                    const t = await this.storage.list(entry.path, { deep: true});
-                    console.log(t);
-                    files.push(entry)
+            if(item.isFile) { 
+                let entry: Entry = { 
+                    path: item.path,
+                    type: item.type,
+                    isFile: item.isFile,
+                    isDirectory: item.isDirectory,
+                    isImage: await this.isImage(item.path)
                 }
 
-            } else { 
+                if(entry.isFile && entry.isImage) { 
+                    //entry.thumbnail = 
+                }
+
                 files.push(entry);
             }
 
