@@ -6,7 +6,7 @@ import {resolve} from 'node:path';
 import {FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/file-storage';
 import {LocalStorageAdapter} from '@flystorage/local-fs'
 import { unlink } from 'node:fs';
-import { Repository, SelectQueryBuilder } from 'typeorm'
+import { DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Files } from '../database/files.entity'
 import { createFolderDTO } from 'src/files/dto/create-folder.dto';
@@ -26,7 +26,9 @@ export class DriveService {
         private foldersRepository: Repository<Folders>,
 
         @InjectRepository(Drives)
-        private drivesRepository: Repository<Drives>
+        private drivesRepository: Repository<Drives>,
+
+        private readonly dataSource: DataSource 
     ) {}
 
     private rootDirectory: string = resolve(process.cwd(), 'drive')
@@ -117,19 +119,37 @@ export class DriveService {
     }
 
     async createFolder(dto: createFolderDTO): Promise<any> { 
-        let path = await this.getParentPath(dto.parentId)
-        path += "/" + dto.name
+        let parentFolder: Folders | undefined = undefined;
+        let path = dto.name;
+        let level = 0;
 
-        this.storage.createDirectory(path)
-        
-        this.filesRepository.save({
-            path: path,
+        if (dto.parentId) {
+            parentFolder = await this.foldersRepository.findOne({ 
+                where: { 
+                    id: dto.parentId
+                }
+            });
+
+            path = parentFolder.path + "/" + dto.name;
+
+            if (!parentFolder) {
+              throw new Error('Parent folder not found');
+            }
+
+            level = parentFolder.level + 1;  // Increment level based on the parent folder's level      
+          }
+
+          let newFolder = this.foldersRepository.create({
             name: dto.name,
-            is_directory: true,
-            is_file: false,
-            is_drive: false,
-            fk_file_id_file: dto.parentId
-        });
+            path: path,
+            parent: parentFolder || null, // If parent is null, it's a root folder
+            level: level
+          });
+
+          const savedFolder = await this.foldersRepository.save(newFolder);
+          
+        this.storage.createDirectory(newFolder.path)
+
     }
 
     async createDrive(dto: createDriveDTO): Promise<any> { 

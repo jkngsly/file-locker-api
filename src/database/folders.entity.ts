@@ -1,3 +1,4 @@
+import { Drives } from 'src/database/drive.entity'
 import { BaseEntity } from './base.entity'
 import { Files } from './files.entity'
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Tree, TreeChildren, TreeLevelColumn, TreeParent } from 'typeorm'
@@ -9,6 +10,9 @@ export class Folders extends BaseEntity {
     folder_id!: string
 */
 
+    @ManyToOne(() => Drives, (drive) => drive.id)
+    drive: Drives
+
     @OneToMany(() => Files, (file) => file.folder)
     files: Files[]
 
@@ -18,21 +22,15 @@ export class Folders extends BaseEntity {
     @Column()
     path!: string
 
-    @Column({
-        default: false
-    })
-    is_media: boolean
-
-    @Column()
-    mime_type: string
-
-    
     @TreeChildren()
     children: Folders[]
 
     @TreeParent()
     parent: Folders
 
+    @Column({
+        default: 0
+    })
     @TreeLevelColumn()
     level: number
 }
