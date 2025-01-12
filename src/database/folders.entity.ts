@@ -1,11 +1,13 @@
 import { BaseEntity } from './base.entity'
 import { Files } from './files.entity'
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Tree, TreeChildren, TreeLevelColumn, TreeParent } from 'typeorm'
 
 @Entity()
+@Tree("closure-table")
 export class Folders extends BaseEntity { 
-    @ManyToOne(() => Folders, (folder) => folder.id)
-    folder: Folders
+    /*@Column()
+    folder_id!: string
+*/
 
     @OneToMany(() => Files, (file) => file.folder)
     files: Files[]
@@ -23,4 +25,14 @@ export class Folders extends BaseEntity {
 
     @Column()
     mime_type: string
+
+    
+    @TreeChildren()
+    children: Folders[]
+
+    @TreeParent()
+    parent: Folders
+
+    @TreeLevelColumn()
+    level: number
 }

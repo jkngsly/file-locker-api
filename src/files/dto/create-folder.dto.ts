@@ -3,8 +3,12 @@ import { isEmail, IsNotEmpty, IsString } from 'class-validator'
 export class createFolderDTO { 
     @IsNotEmpty()
     @IsString()
-    name: string;
-    
+    driveId: string
+
     @IsString()
-    parentId?: string;
+    parentId?: string
+
+    @IsNotEmpty()
+    @IsString()
+    name: string
 }

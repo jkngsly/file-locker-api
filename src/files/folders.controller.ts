@@ -19,6 +19,6 @@ export class FoldersController {
 
     @Post('create')
     async create(@Body() dto: createFolderDTO): Promise<any> { 
-        return this.driveService.createDirectory(dto);
+        return this.driveService.createFolder(dto);
     }
 }

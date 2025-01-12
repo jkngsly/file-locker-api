@@ -5,9 +5,12 @@ import { DriveController } from './drive.controller'
 import { DriveService } from './drive.service'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { Files } from '../database/files.entity'
+import { Drives } from '../database/drive.entity'
+import { Folders } from '../database/folders.entity'
+import { Users } from '../database/users.entity'
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Files])],
+    imports: [TypeOrmModule.forFeature([Files, Drives, Folders, Users])],
     controllers: [DriveController, FilesController, FoldersController],
     providers: [DriveService],
     exports: [DriveService],
