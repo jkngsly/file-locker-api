@@ -6,10 +6,6 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Tree, TreeChildren, T
 @Entity()
 @Tree("closure-table")
 export class Folders extends BaseEntity { 
-    /*@Column()
-    folder_id!: string
-*/
-
     @ManyToOne(() => Drives, (drive) => drive.id)
     drive: Drives
 

@@ -1,7 +1,7 @@
 import { isEmail, IsNotEmpty, IsString } from 'class-validator'
 
 export class createFolderDTO { 
-    @IsNotEmpty()
+    //TODO: remove for dev @IsNotEmpty()
     @IsString()
     driveId: string
 
