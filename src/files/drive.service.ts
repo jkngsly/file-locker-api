@@ -38,9 +38,7 @@ export class DriveService {
 
     // TODO: Auth layer
     private userId: string = "bbb1adf5-bfbc-45ec-a131-61c97595e8be"
-    private driveId: string = "3bb5a2d6-edb0-4139-b139-5a93e7c38886"
-
-
+    private driveId: string = "9e435bfb-69fa-48a6-bb0f-14840d9762b1"
 
     async upload(files: Array<Express.Multer.File>, dto: UploadFilesDTO) {
         const path = "" //await this.getParentPath(dto.parentId)
@@ -111,7 +109,63 @@ export class DriveService {
     return users
     */
 
+    
     async createFolder(dto: createFolderDTO): Promise<any> { 
+        let parentFolder: Folders | undefined = undefined;
+    
+        // Access the entity manager from the DataSource
+        const entityManager = this.dataSource.manager;
+    
+        // Find the associated drive
+        const drive = await entityManager.findOne(Drives, {
+            where: { id: this.driveId },
+        });
+    
+        if (!drive) {
+            throw new Error('Drive not found');
+        }
+    
+        console.log(drive);
+    
+        let path = this.userId;
+        let level = 0;
+    
+        // Check if there is a parent folder
+        if (dto.parentId) {
+            // Fetch the parent folder
+            parentFolder = await entityManager.findOne(Folders, {
+            where: { id: dto.parentId },
+            });
+    
+            if (!parentFolder) {
+            throw new Error('Parent folder not found');
+            }
+    
+            // Construct the path based on the parent folder's path
+            path += `/${parentFolder.path}`;
+            level = parentFolder.level + 1;  // Increment level based on the parent folder's level
+        }
+    
+        // Add the new folder's name to the path
+        path += `/${dto.name}`;
+    
+        // Create a new folder instance
+        const newFolder = entityManager.create(Folders, {
+            name: dto.name,
+            path: path,
+            parent: parentFolder || null, // If no parent, it's a root folder
+            level: level,
+            drive: drive,
+        });
+    
+        // Save the new folder in the database
+        await entityManager.save(Folders, newFolder);
+    
+        // Perform additional operations like creating a directory on your storage system
+        this.storage.createDirectory(newFolder.path);
+    }
+
+    async createFolder2(dto: createFolderDTO): Promise<any> { 
         let parentFolder: Folders | undefined = undefined
         
         let drive = await this.drivesRepository.findOne({ 
@@ -183,12 +237,14 @@ export class DriveService {
     async getAllDirectories(): Promise<Folders[]> { 
         // Method to retrieve all folders in a nested (tree-like) structure
         // Fetch all folders, including their hierarchical relationships
-        const folders = await this.foldersRepository.find({
-        relations: ['parent', 'children'], // Include parent and children relationships
-        });
-        
+        //const folders = await this.foldersRepository.find({
+       // relations: ['parent', 'children'], // Include parent and children relationships
+       // });
+
+        const trees = await this.dataSource.manager.getTreeRepository(Folders).findTrees()
+
         // Return the entire list of folders, this can be rendered in a tree format
-        return folders;
+        return trees;
     }
 
     async get(path: string = ""): Promise<Entry[]> {
