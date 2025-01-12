@@ -2,7 +2,7 @@ import { BaseEntity } from './base.entity'
 import { Column, Entity, OneToMany } from 'typeorm'
 
 @Entity()
-export class File extends BaseEntity { 
+export class Files extends BaseEntity { 
     @Column()
     id!: string
 
@@ -16,11 +16,11 @@ export class File extends BaseEntity {
     name!: string
 
     @Column()
-    isDirectory!: boolean
+    is_directory!: boolean
 
     @Column()
-    isFile!: boolean
+    is_file!: boolean
 
     @Column()
-    username: string
+    mime_type: string
 }

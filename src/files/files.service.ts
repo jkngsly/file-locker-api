@@ -6,25 +6,56 @@ import {resolve} from 'node:path';
 import {FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/file-storage';
 import {LocalStorageAdapter} from '@flystorage/local-fs'
 import { unlink } from 'node:fs';
+import { Repository } from 'typeorm'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Files } from '../database/files.entity'
 
 @Injectable()
 export class FilesService {
+
+    constructor(
+        @InjectRepository(Files)
+        private filesRepository: Repository<Files>
+    ) {}
+
     private rootDirectory: string = resolve(process.cwd(), 'drive');
     private storage: FileStorage = new FileStorage(new LocalStorageAdapter(this.rootDirectory));
 
     async upload(files: Array<Express.Multer.File>, directory: string) {
         files.forEach((file: Express.Multer.File, index) => {
-            this.create(file, directory)
+            this.write(file, directory)
             // Remove the file from /tmp
             .then(() => {
                 unlink(file.path, (err) => {
                     if (err) throw err;
                 });
+
+                /*
+                *
+                    @Column()
+                    path!: string
+                
+                    @Column()
+                    name!: string
+                
+                    @Column()
+                    isDirectory!: boolean
+                
+                    @Column()
+                    isFile!: boolean
+                */
+                return this.filesRepository.save({
+                    path: file.path,
+                    name: file.filename,
+                    is_directory: false,
+                    is_file: true,
+                    mime_type: file.mimetype,
+                });
             });
         });
     }
 
-    async create(file: Express.Multer.File, directory: string): Promise<boolean> {
+    async write(file: Express.Multer.File, directory: string): Promise<boolean> {
         try {
             // TODO: Check for duplicates
             const content = fs.createReadStream(file.path);
