@@ -131,4 +131,6 @@ dist
 
 # Storage
 drive
+drive2
 tmp
+src/database/migrations
