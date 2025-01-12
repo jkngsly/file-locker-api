@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { FilesModule } from './files/files.module'
+import { DriveModule } from './files/drive.module'
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { RouterModule } from '@nestjs/core';
 
 @Module({
   imports: [
-    FilesModule,
+    DriveModule,
     ConfigModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',

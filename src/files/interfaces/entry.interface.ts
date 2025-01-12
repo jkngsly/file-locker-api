@@ -1,5 +1,6 @@
 import { Readable } from 'stream';
 
+// File or Folder
 export default interface Entry { 
     path: string
     type: string

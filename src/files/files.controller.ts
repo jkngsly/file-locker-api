@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles } from '@nestjs/common'
 import { UploadFilesDTO } from './dto/upload-files.dto'
-import { FilesService } from './files.service'
+import { DriveService } from './drive.service'
 import Entry from './interfaces/entry.interface'
 import { FileStorage, Visibility, DirectoryListing, StatEntry } from '@flystorage/file-storage';
 import { Express } from 'express'
@@ -9,34 +9,14 @@ import { diskStorage } from 'multer';
 
 @Controller('files')
 export class FilesController {
-    constructor(private filesService: FilesService) { }
-
-    /*
-    @Post()
-    async create(@Body() createFileDto: CreateFileDto) { 
-        this.filesService.create(createFileDto);
-    }*/
-
-    /*
-@Get()
-async findAll(): Promise<File[]> {
-    return this.filesService.findAll();
-}*/
+    constructor(private driveService: DriveService) { }
 
     @Get('get')
-    async getUserFiles(
+    async getFiles(
         @Req() request: Request,
         @Query('path') path: string = "")
         : Promise<Entry[]> {
-        return this.filesService.get(path);
-    }
-
-    
-    @Get('directories')
-    async getAllDirectories(
-        @Req() request: Request)
-        : Promise<Object[]> {
-       return this.filesService.getAllDirectories();
+        return this.driveService.get(path);
     }
 
 
@@ -53,8 +33,7 @@ async findAll(): Promise<File[]> {
             }),
         }),
     )
-
-    async uploadFiles(@Body() createFileDto: UploadFilesDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
-        await this.filesService.upload(files, createFileDto.directory);
+    async upload(@Body() dto: UploadFilesDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
+        await this.driveService.upload(files, dto.directory);
     }
 }

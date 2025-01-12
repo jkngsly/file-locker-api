@@ -6,12 +6,13 @@ import {resolve} from 'node:path';
 import {FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/file-storage';
 import {LocalStorageAdapter} from '@flystorage/local-fs'
 import { unlink } from 'node:fs';
-import { Repository } from 'typeorm'
+import { Repository, SelectQueryBuilder } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Files } from '../database/files.entity'
+import { createFolderDTO } from 'src/files/dto/create-folder.dto';
 
 @Injectable()
-export class FilesService {
+export class DriveService {
 
     constructor(
         @InjectRepository(Files)
@@ -20,6 +21,7 @@ export class FilesService {
 
     private rootDirectory: string = resolve(process.cwd(), 'drive');
     private storage: FileStorage = new FileStorage(new LocalStorageAdapter(this.rootDirectory));
+    private queryBuilder: SelectQueryBuilder<Files> = this.filesRepository.createQueryBuilder('files');
 
     async upload(files: Array<Express.Multer.File>, directory: string) {
         files.forEach((file: Express.Multer.File, index) => {
@@ -30,20 +32,6 @@ export class FilesService {
                     if (err) throw err;
                 });
 
-                /*
-                *
-                    @Column()
-                    path!: string
-                
-                    @Column()
-                    name!: string
-                
-                    @Column()
-                    isDirectory!: boolean
-                
-                    @Column()
-                    isFile!: boolean
-                */
                 return this.filesRepository.save({
                     path: file.path,
                     name: file.filename,
@@ -55,7 +43,7 @@ export class FilesService {
         });
     }
 
-    async write(file: Express.Multer.File, directory: string): Promise<boolean> {
+    private async write(file: Express.Multer.File, directory: string): Promise<boolean> {
         try {
             // TODO: Check for duplicates
             const content = fs.createReadStream(file.path);
@@ -89,6 +77,43 @@ export class FilesService {
         });
     
         return root;
+    }
+
+    /*
+     
+
+    const users: User[] = await usersQueryBuilder
+      .where('user.username = :username', { username: usersInput.username })
+      .getMany();
+
+    return users;
+    */
+
+    async getPathById(id: string) { 
+        return this.queryBuilder.select('files.path').where('files.id = :id', { id: id })
+        .getOneOrFail();
+    }
+
+    async createDirectory(dto: createFolderDTO): Promise<any> { 
+        let path: string = "";
+        if(dto.parentId) { 
+            const parent = await this.getPathById(dto.parentId);
+            path += parent.path + '/';
+        } else { 
+            dto.parentId = null;
+        }
+
+        path += dto.name;
+
+        this.storage.createDirectory(path);
+        
+        this.filesRepository.save({
+            path: path,
+            name: dto.name,
+            is_directory: true,
+            is_file: false,
+            fk_file_id_file: dto.parentId
+        });
     }
 
     async getAllDirectories(): Promise<Object[]> { 
