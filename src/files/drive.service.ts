@@ -112,10 +112,10 @@ export class DriveService {
 
 
     async get(path: string = ""): Promise<Entry[]> {
-        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
+       // const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
 
         let files: Entry[] = []
-
+/*
         for await (const item of contentsAsAsyncGenerator) {
             
             if(item.isFile) { 
@@ -133,7 +133,7 @@ export class DriveService {
 
                 files.push(entry)
             }
-        }
+        }*/
 
         return files
     }
@@ -204,9 +204,26 @@ export class DriveService {
         })
     }
 
-    async getAllDirectories(): Promise<Folders[]> { 
-        const trees = await this.dataSource.manager.getTreeRepository(Folders).findTrees()
-        return trees;
+    async getFolders(id?: string): Promise<any> { 
+        if(id) { 
+            const entityManager = this.dataSource.manager;
+            const folder = await entityManager.findOne(Folders, {
+                where: { id: id },
+            });
+    
+            if (!folder) {
+            throw new Error('folder not found');
+            }
+
+
+            return await this.dataSource.manager.getTreeRepository(Folders).findDescendantsTree(
+                folder,
+                { depth: 1},
+            )
+        } else { 
+            return await this.dataSource.manager.getTreeRepository(Folders).findTrees()
+
+        }
     }
 
     // TODO: move to client

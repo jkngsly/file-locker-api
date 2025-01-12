@@ -8,14 +8,15 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { createFolderDTO } from 'src/files/dto/create-folder.dto';
 import { Folders } from 'src/database/folders.entity';
+import { GetFoldersDTO } from 'src/files/dto/get-folders.dto';
 
 @Controller('folders')
 export class FoldersController {
     constructor(private driveService: DriveService) { }
 
     @Get('get')
-    async get(@Req() request: Request): Promise<Folders[]> {
-       return this.driveService.getAllDirectories();
+    async get(@Query() query: GetFoldersDTO) {
+        return this.driveService.getFolders(query.id);
     }
 
     @Post('create')
