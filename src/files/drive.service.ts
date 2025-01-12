@@ -40,9 +40,38 @@ export class DriveService {
     private userId: string = "bbb1adf5-bfbc-45ec-a131-61c97595e8be"
     private driveId: string = "9e435bfb-69fa-48a6-bb0f-14840d9762b1"
 
+    private async getParentPath(id?: string): Promise<string> { 
+        let path = "";
+
+        return path;
+    }
+
     async upload(files: Array<Express.Multer.File>, dto: UploadFilesDTO) {
-        const path = "" //await this.getParentPath(dto.parentId)
+        let parentFolder: Folders | undefined = undefined;
+        let path = "";
+
+        // Access the entity manager from the DataSource
+        const entityManager = this.dataSource.manager;
+    
+        // Check if there is a parent folder
+        if (dto.parentId) {
+            // Fetch the parent folder
+            parentFolder = await entityManager.findOne(Folders, {
+                where: { id: dto.parentId },
+            });
+    
+            if (!parentFolder) {
+            throw new Error('Parent folder not found');
+            }
+    
+            // Construct the path based on the parent folder's path
+            path += `/${parentFolder.path}`;
+        }
+    
         files.forEach((file: Express.Multer.File, index) => {
+            path =  + "/" + file.originalname;
+            console.log(path);
+            return false;
             this.write(file, path)
             .then(() => {
                 // Remove the file from /tmp
@@ -63,11 +92,16 @@ export class DriveService {
         })
     }
 
-    private async write(file: Express.Multer.File, directory: string): Promise<boolean> {
+    private async write(file: Express.Multer.File, path: string): Promise<boolean> {
         try {
             // TODO: Check for duplicates
             const content = fs.createReadStream(file.path)
-            await this.storage.write(file.originalname, content)
+
+            // TODO: SEPARATE 
+            let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.userId)
+            let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
+
+            await fileStorage.write(path, content)
             return true
         } catch (err) {
             if (err instanceof UnableToWriteFile) {
@@ -75,6 +109,35 @@ export class DriveService {
             }
         }
     }
+
+
+    async get(path: string = ""): Promise<Entry[]> {
+        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
+
+        let files: Entry[] = []
+
+        for await (const item of contentsAsAsyncGenerator) {
+            
+            if(item.isFile) { 
+                let entry: Entry = { 
+                    path: item.path,
+                    type: item.type,
+                    isFile: item.isFile,
+                    isDirectory: item.isDirectory,
+                    isImage: await this.isImage(item.path)
+                }
+
+                if(entry.isFile && entry.isImage) { 
+                    //entry.thumbnail = 
+                }
+
+                files.push(entry)
+            }
+        }
+
+        return files
+    }
+
 
     async createFolder(dto: createFolderDTO): Promise<any> { 
         let parentFolder: Folders | undefined = undefined;
@@ -90,8 +153,6 @@ export class DriveService {
         if (!drive) {
             throw new Error('Drive not found');
         }
-    
-        console.log(drive);
     
         let path = "";
         let level = 0;
@@ -146,33 +207,6 @@ export class DriveService {
     async getAllDirectories(): Promise<Folders[]> { 
         const trees = await this.dataSource.manager.getTreeRepository(Folders).findTrees()
         return trees;
-    }
-
-    async get(path: string = ""): Promise<Entry[]> {
-        const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
-
-        let files: Entry[] = []
-
-        for await (const item of contentsAsAsyncGenerator) {
-            
-            if(item.isFile) { 
-                let entry: Entry = { 
-                    path: item.path,
-                    type: item.type,
-                    isFile: item.isFile,
-                    isDirectory: item.isDirectory,
-                    isImage: await this.isImage(item.path)
-                }
-
-                if(entry.isFile && entry.isImage) { 
-                    //entry.thumbnail = 
-                }
-
-                files.push(entry)
-            }
-        }
-
-        return files
     }
 
     // TODO: move to client
