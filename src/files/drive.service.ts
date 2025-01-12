@@ -10,6 +10,8 @@ import { Repository, SelectQueryBuilder } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Files } from '../database/files.entity'
 import { createFolderDTO } from 'src/files/dto/create-folder.dto';
+import { UploadFilesDTO } from 'src/files/dto/upload-files.dto';
+import { createDriveDTO } from 'src/files/dto/create-drive.dto';
 
 @Injectable()
 export class DriveService {
@@ -23,11 +25,12 @@ export class DriveService {
     private storage: FileStorage = new FileStorage(new LocalStorageAdapter(this.rootDirectory));
     private queryBuilder: SelectQueryBuilder<Files> = this.filesRepository.createQueryBuilder('files');
 
-    async upload(files: Array<Express.Multer.File>, directory: string) {
+    async upload(files: Array<Express.Multer.File>, dto: UploadFilesDTO) {
+        const path = await this.getParentPath(dto.parentId);
         files.forEach((file: Express.Multer.File, index) => {
-            this.write(file, directory)
-            // Remove the file from /tmp
+            this.write(file, path)
             .then(() => {
+                // Remove the file from /tmp
                 unlink(file.path, (err) => {
                     if (err) throw err;
                 });
@@ -37,7 +40,9 @@ export class DriveService {
                     name: file.filename,
                     is_directory: false,
                     is_file: true,
+                    is_drive: false,
                     mime_type: file.mimetype,
+                    parentId: dto.parentId
                 });
             });
         });
@@ -89,21 +94,19 @@ export class DriveService {
     return users;
     */
 
-    async getPathById(id: string) { 
+    private async getPathById(id: string) { 
         return this.queryBuilder.select('files.path').where('files.id = :id', { id: id })
         .getOneOrFail();
     }
 
-    async createDirectory(dto: createFolderDTO): Promise<any> { 
-        let path: string = "";
-        if(dto.parentId) { 
-            const parent = await this.getPathById(dto.parentId);
-            path += parent.path + '/';
-        } else { 
-            dto.parentId = null;
-        }
+    private async getParentPath(id: string) { 
+        const parent = await this.getPathById(id);
+        return parent.path;
+    }
 
-        path += dto.name;
+    async createDirectory(dto: createFolderDTO): Promise<any> { 
+        let path = await this.getParentPath(dto.parentId);
+        path += "/" + dto.name;
 
         this.storage.createDirectory(path);
         
@@ -112,7 +115,20 @@ export class DriveService {
             name: dto.name,
             is_directory: true,
             is_file: false,
+            is_drive: false,
             fk_file_id_file: dto.parentId
+        });
+    }
+
+    async createDrive(dto: createDriveDTO): Promise<any> { 
+        this.storage.createDirectory(dto.name);
+        
+        this.filesRepository.save({
+            path: dto.name,
+            name: dto.name,
+            is_directory: true,
+            is_file: false,
+            is_drive: true,
         });
     }
 

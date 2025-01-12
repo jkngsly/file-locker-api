@@ -34,6 +34,6 @@ export class FilesController {
         }),
     )
     async upload(@Body() dto: UploadFilesDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
-        await this.driveService.upload(files, dto.directory);
+        await this.driveService.upload(files, dto);
     }
 }

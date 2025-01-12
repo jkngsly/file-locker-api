@@ -1,12 +1,14 @@
 import { BaseEntity } from './base.entity'
-import { Folders } from './folders.entity'
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
+import { Files } from './files.entity'
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm'
 
 @Entity()
-export class Files extends BaseEntity { 
+export class Folders extends BaseEntity { 
     @ManyToOne(() => Folders, (folder) => folder.id)
-    @JoinColumn({ name: "folder_id" })
     folder: Folders
+
+    @OneToMany(() => Files, (file) => file.folder)
+    files: Files[]
 
     @Column()
     name!: string

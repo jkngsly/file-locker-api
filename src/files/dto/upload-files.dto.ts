@@ -4,4 +4,7 @@ export class UploadFilesDTO {
     @IsNotEmpty()
     @IsString()
     directory: string;
+
+    @IsString()
+    parentId?: string;
 }

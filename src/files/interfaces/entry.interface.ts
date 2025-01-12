@@ -8,4 +8,5 @@ export default interface Entry {
     isDirectory: boolean
     isImage: boolean
     thumbnail?: string
+    parentId?: string
 }
