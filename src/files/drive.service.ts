@@ -76,40 +76,6 @@ export class DriveService {
         }
     }
 
-    private buildFolderHierarchy(folders) {
-        const root = []
-    
-        folders.forEach(folder => {
-            const pathParts = folder.path.replace(/\\/g, '/').split('/')
-            let currentLevel = root
-    
-            // Traverse or create the necessary parent folders
-            pathParts.forEach((part, index) => {
-                // Check if a folder at this level already exists
-                let existingFolder = currentLevel.find(f => f.path === part)
-                if (!existingFolder) {
-                    // If not, create a new folder object
-                    existingFolder = { fullPath: folder.path.replaceAll('\\', '/'), path: part, children: [] }
-                    currentLevel.push(existingFolder)
-                }
-                currentLevel = existingFolder.children  // Move to the next level of the tree
-            })
-        })
-    
-        return root
-    }
-
-    /*
-     
-
-    const users: User[] = await usersQueryBuilder
-      .where('user.username = :username', { username: usersInput.username })
-      .getMany()
-
-    return users
-    */
-
-    
     async createFolder(dto: createFolderDTO): Promise<any> { 
         let parentFolder: Folders | undefined = undefined;
     
@@ -127,7 +93,7 @@ export class DriveService {
     
         console.log(drive);
     
-        let path = this.userId;
+        let path = "";
         let level = 0;
     
         // Check if there is a parent folder
@@ -160,55 +126,13 @@ export class DriveService {
     
         // Save the new folder in the database
         await entityManager.save(Folders, newFolder);
-    
+        
+        // TODO: SEPARATE 
+        let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.userId)
+        let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
+
         // Perform additional operations like creating a directory on your storage system
-        this.storage.createDirectory(newFolder.path);
-    }
-
-    async createFolder2(dto: createFolderDTO): Promise<any> { 
-        let parentFolder: Folders | undefined = undefined
-        
-        let drive = await this.drivesRepository.findOne({ 
-            where: { 
-                id: this.driveId
-            }
-        })
-
-        console.log(drive)
-
-        let path = this.userId
-        let level = 0
-
-        if (dto.parentId) {
-            parentFolder = await this.foldersRepository.findOne({ 
-                where: { 
-                    id: dto.parentId
-                }
-            })
-
-            path += "/" + parentFolder.path
-
-            if (!parentFolder) {
-              throw new Error('Parent folder not found')
-            }
-
-            level = parentFolder.level + 1  // Increment level based on the parent folder's level      
-          }
-
-          path += "/" + dto.name
-
-          let newFolder = this.foldersRepository.create({
-            name: dto.name,
-            path: path,
-            parent: parentFolder || null, // If parent is null, it's a root folder
-            level: level,
-            drive: drive
-          })
-
-          const savedFolder = await this.foldersRepository.save(newFolder)
-        
-        this.storage.createDirectory(newFolder.path)
-
+        fileStorage.createDirectory(newFolder.path);
     }
 
     async createDrive(dto: createDriveDTO): Promise<any> { 
@@ -218,32 +142,9 @@ export class DriveService {
             user_id: dto.userId
         })
     }
-/*
-    async getAllDirectories(): Promise<Object[]> { 
-        const listing = this.storage.list("", { deep: true})
-
-        const entries = []
-        for await (const entry of listing) {
-            if(entry.isDirectory) { 
-                entries.push(entry)
-            }
-        }
-
-        const directories = this.buildFolderHierarchy(entries)
-        return directories
-    }
-*/
 
     async getAllDirectories(): Promise<Folders[]> { 
-        // Method to retrieve all folders in a nested (tree-like) structure
-        // Fetch all folders, including their hierarchical relationships
-        //const folders = await this.foldersRepository.find({
-       // relations: ['parent', 'children'], // Include parent and children relationships
-       // });
-
         const trees = await this.dataSource.manager.getTreeRepository(Folders).findTrees()
-
-        // Return the entire list of folders, this can be rendered in a tree format
         return trees;
     }
 
