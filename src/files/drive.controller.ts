@@ -12,12 +12,6 @@ import { createDriveDTO } from 'src/files/dto/create-drive.dto';
 export class DrivesController {
     constructor(private driveService: DriveService) { }
 
- 
-    @Get('get')
-    async get(): Promise<Object[]> {
-       return this.driveService.getRoot();
-    }
-
     @Post('create')
     async create(@Body() dto: createDriveDTO): Promise<any> { 
         return this.driveService.createDrive(dto);

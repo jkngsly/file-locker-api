@@ -163,7 +163,7 @@ export class DriveService {
 
         // Find the associated drive
         const drive = await this.dataSource.manager.findOne(Drives, {
-            where: { id: this.driveId },
+            where: { user_id: this.userId },
         });
 
         if (!drive) {
@@ -185,12 +185,14 @@ export class DriveService {
             }
 
             // Construct the path based on the parent folder's path
-            path += `/${parentFolder.path}`;
+            path += `${parentFolder.path}/`;
             level = parentFolder.level + 1;  // Increment level based on the parent folder's level
+        } else { 
+            parentFolder = await this.getRootFolder();
         }
 
         // Add the new folder's name to the path
-        path += `/${dto.name}`;
+        path += `${dto.name}`;
 
         this.writeFolder(
             {
@@ -218,26 +220,24 @@ export class DriveService {
         });
     }
 
-    
-    async getRoot(): Promise<any> {
-        
-    }
-
     async getFolders(id?: string): Promise<any> {
         let folder = null;
 
+        console.log(id, "GET FOLDER ID");
         if (id) {
             folder = await this.dataSource.manager.findOne(Folders, {
                 where: { id: id },
             });
         } else {
             // Fetch the parent folder
-            folder = this.getRootFolder();
+            folder = await this.getRootFolder();
         }
 
         if (!folder) {
             throw new Error('folder not found');
         }
+
+        console.log(folder);
 
         return await this.dataSource.manager.getTreeRepository(Folders).findDescendantsTree(
             folder,
