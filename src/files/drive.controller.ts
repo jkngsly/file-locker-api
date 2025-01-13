@@ -9,14 +9,14 @@ import { diskStorage } from 'multer';
 import { createDriveDTO } from 'src/files/dto/create-drive.dto';
 
 @Controller('drive')
-export class DriveController {
+export class DrivesController {
     constructor(private driveService: DriveService) { }
 
-    /*
+ 
     @Get('get')
-    async get(@Req() request: Request): Promise<Object[]> {
-       return this.driveService.getDrive();
-    }*/
+    async get(): Promise<Object[]> {
+       return this.driveService.getRoot();
+    }
 
     @Post('create')
     async create(@Body() dto: createDriveDTO): Promise<any> { 

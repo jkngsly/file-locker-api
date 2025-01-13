@@ -5,7 +5,10 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Tree, TreeChildren, T
 
 @Entity()
 @Tree("closure-table")
-export class Folders extends BaseEntity { 
+export class Folders extends BaseEntity {
+    @Column()
+    drive_id: string
+    
     @ManyToOne(() => Drives, (drive) => drive.id)
     drive: Drives
 
@@ -29,4 +32,9 @@ export class Folders extends BaseEntity {
     })
     @TreeLevelColumn()
     level: number
+
+    @Column({
+        default: false,
+    })
+    is_root: boolean
 }

@@ -12,7 +12,7 @@ export class FilesController {
     constructor(private driveService: DriveService) { }
 
     @Get('get')
-    async getFiles(@Query('folderId') folderId: string = "")
+    async getFiles(@Query('folderId') folderId: string = null)
         : Promise<Entry[]> {
         return this.driveService.getFiles(folderId);
     }

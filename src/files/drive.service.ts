@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common'
 import Entry from './interfaces/entry.interface'
 import * as fs from 'fs'
 import * as console from 'console'
-import {resolve} from 'node:path'
-import {FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/file-storage'
-import {LocalStorageAdapter} from '@flystorage/local-fs'
+import { resolve } from 'node:path'
+import { FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/file-storage'
+import { LocalStorageAdapter } from '@flystorage/local-fs'
 import { unlink } from 'node:fs'
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
@@ -22,15 +22,15 @@ export class DriveService {
     constructor(
         @InjectRepository(Files)
         private filesRepository: Repository<Files>,
-        
+
         @InjectRepository(Folders)
         private foldersRepository: Repository<Folders>,
 
         @InjectRepository(Drives)
         private drivesRepository: Repository<Drives>,
 
-        private readonly dataSource: DataSource 
-    ) {}
+        private readonly dataSource: DataSource
+    ) { }
 
     private rootDirectory: string = resolve(process.cwd(), 'drive')
     private storage: FileStorage = new FileStorage(new LocalStorageAdapter(this.rootDirectory))
@@ -40,7 +40,7 @@ export class DriveService {
     private userId: string = "bbb1adf5-bfbc-45ec-a131-61c97595e8be"
     private driveId: string = "9e435bfb-69fa-48a6-bb0f-14840d9762b1"
 
-    private async getParentPath(id?: string): Promise<string> { 
+    private async getParentPath(id?: string): Promise<string> {
         let path = "";
 
         return path;
@@ -52,41 +52,41 @@ export class DriveService {
 
         // Access the entity manager from the DataSource
         const entityManager = this.dataSource.manager;
-      console.log(dto.folderId, "folder id");;
-        // Check if there is a parent folder
-        if (dto.folderId) {
+        console.log(dto.folderId, "folder id");;
+     
+        if(!dto.folderId) { 
+            parentFolder = await this.getRootFolder();
+        } else { 
             // Fetch the parent folder
             parentFolder = await entityManager.findOne(Folders, {
                 where: { id: dto.folderId },
             });
-    
-            if (!parentFolder) {
+        }
+        if (!parentFolder) {
             throw new Error('Parent folder not found');
-            }
-    
-            // Construct the path based on the parent folder's path
-            path += `${parentFolder.path}`;  console.log(path, "new path");
-            
         }
 
+        // Construct the path based on the parent folder's path
+        path += `${parentFolder.path}`; console.log(path, "new path");
+        
         files.forEach((file: Express.Multer.File, index) => {
-            const filePath =  path + "/" + file.originalname;
-           
-            this.write(file, filePath)
-            .then(() => {
-                // Remove the file from /tmp
-                unlink(file.path, (err) => {
-                    if (err) throw err
-                })
+            const filePath = path + "/" + file.originalname;
 
-                return this.filesRepository.save({
-                    folder: parentFolder,
-                    name: file.originalname,
-                    path: filePath,
-                    is_media: false,
-                    mime_type: file.mimetype
+            this.write(file, filePath)
+                .then(() => {
+                    // Remove the file from /tmp
+                    unlink(file.path, (err) => {
+                        if (err) throw err
+                    })
+
+                    return this.filesRepository.save({
+                        folder: parentFolder,
+                        name: file.originalname,
+                        path: filePath,
+                        is_media: false,
+                        mime_type: file.mimetype
+                    })
                 })
-            })
         })
     }
 
@@ -108,70 +108,48 @@ export class DriveService {
         }
     }
 
+    private async getRootFolder() { 
+        // Find the associated drive
+        const drive = await this.dataSource.manager.findOne(Drives, {
+            where: { user_id: this.userId }
+        });
+
+        if (!drive) {
+            throw new Error('Drive not found');
+        }
+
+        // Fetch the parent folder
+        return await this.dataSource.manager.findOne(Folders, {
+            where: { drive_id: drive.id, is_root: true },
+        });
+    }
 
     async getFiles(folderId?: string): Promise<any[]> {
-       // const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
+        // const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
 
-        let where = {
-            folder_id: "root",
-        };
-        if(folderId) {
-            where.folder_id = folderId
+        let where = null;
+        if (folderId) {
+            where = { 
+                folder_id: folderId
+            }
+        } else { 
+            const folder = await this.getRootFolder();
+            console.log(folder);
+            where = { 
+                folder_id: folder.id
+            }
         }
 
         return await this.filesRepository.find({ where: where })
     }
 
-
-    async createFolder(dto: createFolderDTO): Promise<any> { 
-        let parentFolder: Folders | undefined = undefined;
-    
-        // Access the entity manager from the DataSource
-        const entityManager = this.dataSource.manager;
-    
-        // Find the associated drive
-        const drive = await entityManager.findOne(Drives, {
-            where: { id: this.driveId },
-        });
-    
-        if (!drive) {
-            throw new Error('Drive not found');
-        }
-    
-        let path = "";
-        let level = 0;
-    
-        // Check if there is a parent folder
-        if (dto.parentId) {
-            // Fetch the parent folder
-            parentFolder = await entityManager.findOne(Folders, {
-            where: { id: dto.parentId },
-            });
-    
-            if (!parentFolder) {
-            throw new Error('Parent folder not found');
-            }
-    
-            // Construct the path based on the parent folder's path
-            path += `/${parentFolder.path}`;
-            level = parentFolder.level + 1;  // Increment level based on the parent folder's level
-        }
-    
-        // Add the new folder's name to the path
-        path += `/${dto.name}`;
-    
+    private async writeFolder(folder: any) {
         // Create a new folder instance
-        const newFolder = entityManager.create(Folders, {
-            name: dto.name,
-            path: path,
-            parent: parentFolder || null, // If no parent, it's a root folder
-            level: level,
-            drive: drive,
-        });
-    
+        const newFolder = this.dataSource.manager.create(Folders, folder);
+
         // Save the new folder in the database
-        await entityManager.save(Folders, newFolder);
-        
+        await this.dataSource.manager.save(Folders, newFolder);
+
         // TODO: SEPARATE 
         let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.userId)
         let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
@@ -180,34 +158,91 @@ export class DriveService {
         fileStorage.createDirectory(newFolder.path);
     }
 
-    async createDrive(dto: createDriveDTO): Promise<any> { 
-        this.storage.createDirectory(dto.userId)
+    async createFolder(dto: createFolderDTO): Promise<any> {
+        let parentFolder: Folders | undefined = undefined;
 
-        return this.drivesRepository.save({
-            user_id: dto.userId
-        })
-    }
+        // Find the associated drive
+        const drive = await this.dataSource.manager.findOne(Drives, {
+            where: { id: this.driveId },
+        });
 
-    async getFolders(id?: string): Promise<any> { 
-        if(id) { 
-            const entityManager = this.dataSource.manager;
-            const folder = await entityManager.findOne(Folders, {
-                where: { id: id },
+        if (!drive) {
+            throw new Error('Drive not found');
+        }
+
+        let path = "";
+        let level = 0;
+
+        // Check if there is a parent folder
+        if (dto.parentId) {
+            // Fetch the parent folder
+            parentFolder = await this.dataSource.manager.findOne(Folders, {
+                where: { id: dto.parentId },
             });
-    
-            if (!folder) {
-            throw new Error('folder not found');
+
+            if (!parentFolder) {
+                throw new Error('Parent folder not found');
             }
 
-
-            return await this.dataSource.manager.getTreeRepository(Folders).findDescendantsTree(
-                folder,
-                { depth: 1},
-            )
-        } else { 
-            return await this.dataSource.manager.getTreeRepository(Folders).findTrees()
-
+            // Construct the path based on the parent folder's path
+            path += `/${parentFolder.path}`;
+            level = parentFolder.level + 1;  // Increment level based on the parent folder's level
         }
+
+        // Add the new folder's name to the path
+        path += `/${dto.name}`;
+
+        this.writeFolder(
+            {
+                name: dto.name,
+                path: path,
+                parent: parentFolder || null, // If no parent, it's a root folder
+                level: level,
+                drive: drive,
+            });
+    }
+
+    async createDrive(dto: createDriveDTO): Promise<any> {
+        this.storage.createDirectory(dto.userId)
+
+        const drive = await this.drivesRepository.save({
+            user_id: dto.userId
+        })
+
+        return this.writeFolder({
+            name: "root",
+            path: "",
+            level: 0,
+            drive: drive,
+            is_root: true
+        });
+    }
+
+    
+    async getRoot(): Promise<any> {
+        
+    }
+
+    async getFolders(id?: string): Promise<any> {
+        let folder = null;
+
+        if (id) {
+            folder = await this.dataSource.manager.findOne(Folders, {
+                where: { id: id },
+            });
+        } else {
+            // Fetch the parent folder
+            folder = this.getRootFolder();
+        }
+
+        if (!folder) {
+            throw new Error('folder not found');
+        }
+
+        return await this.dataSource.manager.getTreeRepository(Folders).findDescendantsTree(
+            folder,
+            { depth: 1 },
+        )
     }
 
     // TODO: move to client

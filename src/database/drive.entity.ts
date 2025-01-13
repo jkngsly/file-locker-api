@@ -13,6 +13,6 @@ export class Drives extends BaseEntity {
     user: Users
     
     @OneToMany(() => Folders, (folder) => folder.id)
-    @JoinColumn({ name: "folder_id" })
+    @JoinColumn({ name: "drive_id" })
     folders: Folders[]
 }
