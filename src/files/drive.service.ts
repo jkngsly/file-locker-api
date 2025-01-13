@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import Entry from './interfaces/entry.interface'
 import * as fs from 'fs'
 import * as console from 'console'
-import { resolve } from 'node:path'
+import path, { resolve } from 'node:path'
 import { FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/file-storage'
 import { LocalStorageAdapter } from '@flystorage/local-fs'
 import { unlink } from 'node:fs'
@@ -47,15 +47,14 @@ export class DriveService {
     }
 
     async upload(files: Array<Express.Multer.File>, dto: UploadFilesDTO) {
-        let parentFolder: Folders | undefined = undefined;
-        let path = "";
+        let parentFolder: Folders | undefined = undefined
+        let path = ""
 
         // Access the entity manager from the DataSource
-        const entityManager = this.dataSource.manager;
-        console.log(dto.folderId, "folder id");;
+        const entityManager = this.dataSource.manager
      
         if(!dto.folderId) { 
-            parentFolder = await this.getRootFolder();
+            parentFolder = await this.getRootFolder()
         } else { 
             // Fetch the parent folder
             parentFolder = await entityManager.findOne(Folders, {
@@ -67,7 +66,7 @@ export class DriveService {
         }
 
         // Construct the path based on the parent folder's path
-        path += `${parentFolder.path}`; console.log(path, "new path");
+        path += `${parentFolder.path}`
         
         files.forEach((file: Express.Multer.File, index) => {
             const filePath = path + "/" + file.originalname;
@@ -124,23 +123,33 @@ export class DriveService {
         });
     }
 
-    async getFiles(folderId?: string): Promise<any[]> {
+    async getFiles(folderId?: string): Promise<Object> {
         // const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
+        let folder = null;
 
         let where = null;
         if (folderId) {
+            
+            folder = await this.dataSource.manager.findOne(Folders, {
+                where: { id: folderId },
+                select: ["path"]
+            });
+
             where = { 
                 folder_id: folderId
             }
         } else { 
-            const folder = await this.getRootFolder();
-            console.log(folder);
+            folder = await this.getRootFolder();
+
             where = { 
                 folder_id: folder.id
             }
         }
+        return {
+            files: await this.filesRepository.find({ where: where }),
+            folder: folder
+        }
 
-        return await this.filesRepository.find({ where: where })
     }
 
     private async writeFolder(folder: any) {
@@ -223,7 +232,6 @@ export class DriveService {
     async getFolders(id?: string): Promise<any> {
         let folder = null;
 
-        console.log(id, "GET FOLDER ID");
         if (id) {
             folder = await this.dataSource.manager.findOne(Folders, {
                 where: { id: id },
@@ -237,7 +245,6 @@ export class DriveService {
             throw new Error('folder not found');
         }
 
-        console.log(folder);
 
         return await this.dataSource.manager.getTreeRepository(Folders).findDescendantsTree(
             folder,

@@ -8,6 +8,9 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Tree, TreeChildren, T
 export class Folders extends BaseEntity {
     @Column()
     drive_id: string
+
+    @Column()
+    parent_id: string
     
     @ManyToOne(() => Drives, (drive) => drive.id)
     drive: Drives

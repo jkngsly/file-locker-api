@@ -13,7 +13,7 @@ export class FilesController {
 
     @Get('get')
     async getFiles(@Query('folderId') folderId: string = null)
-        : Promise<Entry[]> {
+        : Promise<Object> {
         return this.driveService.getFiles(folderId);
     }
 
