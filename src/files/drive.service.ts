@@ -52,12 +52,12 @@ export class DriveService {
 
         // Access the entity manager from the DataSource
         const entityManager = this.dataSource.manager;
-    
+      console.log(dto.folderId, "folder id");;
         // Check if there is a parent folder
-        if (dto.parentId) {
+        if (dto.folderId) {
             // Fetch the parent folder
             parentFolder = await entityManager.findOne(Folders, {
-                where: { id: dto.parentId },
+                where: { id: dto.folderId },
             });
     
             if (!parentFolder) {
@@ -65,14 +65,14 @@ export class DriveService {
             }
     
             // Construct the path based on the parent folder's path
-            path += `/${parentFolder.path}`;
+            path += `${parentFolder.path}`;  console.log(path, "new path");
+            
         }
-    
+
         files.forEach((file: Express.Multer.File, index) => {
-            path =  + "/" + file.originalname;
-            console.log(path);
-            return false;
-            this.write(file, path)
+            const filePath =  path + "/" + file.originalname;
+           
+            this.write(file, filePath)
             .then(() => {
                 // Remove the file from /tmp
                 unlink(file.path, (err) => {
@@ -80,13 +80,11 @@ export class DriveService {
                 })
 
                 return this.filesRepository.save({
-                    path: file.path,
-                    name: file.filename,
-                    is_directory: false,
-                    is_file: true,
-                    is_drive: false,
-                    mime_type: file.mimetype,
-                    parentId: dto.parentId
+                    folder: parentFolder,
+                    name: file.originalname,
+                    path: filePath,
+                    is_media: false,
+                    mime_type: file.mimetype
                 })
             })
         })
@@ -111,31 +109,17 @@ export class DriveService {
     }
 
 
-    async get(path: string = ""): Promise<Entry[]> {
+    async getFiles(folderId?: string): Promise<any[]> {
        // const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
 
-        let files: Entry[] = []
-/*
-        for await (const item of contentsAsAsyncGenerator) {
-            
-            if(item.isFile) { 
-                let entry: Entry = { 
-                    path: item.path,
-                    type: item.type,
-                    isFile: item.isFile,
-                    isDirectory: item.isDirectory,
-                    isImage: await this.isImage(item.path)
-                }
+        let where = {
+            folder_id: "root",
+        };
+        if(folderId) {
+            where.folder_id = folderId
+        }
 
-                if(entry.isFile && entry.isImage) { 
-                    //entry.thumbnail = 
-                }
-
-                files.push(entry)
-            }
-        }*/
-
-        return files
+        return await this.filesRepository.find({ where: where })
     }
 
 
