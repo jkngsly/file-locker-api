@@ -123,6 +123,13 @@ export class DriveService {
         });
     }
 
+    async getFile(id: string): Promise<Object> { 
+        // const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
+        return await this.dataSource.manager.findOne(Files, {
+            where: { id: id },
+        });
+    }
+
     async getFiles(folderId?: string): Promise<Object> {
         // const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
         let folder = null;

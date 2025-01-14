@@ -11,12 +11,17 @@ import { diskStorage } from 'multer';
 export class FilesController {
     constructor(private driveService: DriveService) { }
 
-    @Get('get')
+    @Get('')
     async getFiles(@Query('folderId') folderId: string = null)
         : Promise<Object> {
         return this.driveService.getFiles(folderId);
     }
-
+    
+    @Get('file')
+    async getFile(@Query('id') id: string = null)
+        : Promise<Object> {
+        return this.driveService.getFile(id);
+    }
 
     @Post('upload')
     // TODO: Max file count setting
