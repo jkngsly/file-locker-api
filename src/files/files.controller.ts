@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles } from '@nestjs/common'
+import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles, StreamableFile } from '@nestjs/common'
 import { UploadFilesDTO } from './dto/upload-files.dto'
 import { DriveService } from './drive.service'
 import Entry from './interfaces/entry.interface'
@@ -6,6 +6,7 @@ import { FileStorage, Visibility, DirectoryListing, StatEntry } from '@flystorag
 import { Express } from 'express'
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { createReadStream } from 'fs';
 
 @Controller('files')
 export class FilesController {
@@ -14,13 +15,18 @@ export class FilesController {
     @Get('')
     async getFiles(@Query('folderId') folderId: string = null)
         : Promise<Object> {
-        return this.driveService.getFiles(folderId);
+        return this.driveService.getFiles(folderId)
     }
     
     @Get('file')
     async getFile(@Query('id') id: string = null)
         : Promise<Object> {
-        return this.driveService.getFile(id);
+        return this.driveService.getFile(id)
+    }
+
+    @Get('download') 
+    async readFile(@Query('id') id: string) : Promise<StreamableFile> { 
+        return this.driveService.downloadFile(id)
     }
 
     @Post('upload')
@@ -31,12 +37,12 @@ export class FilesController {
                 destination: 'tmp',
                 filename: (req, file, cb) => {
                     // Generate a unique filename here
-                    cb(null, `${Date.now()}-${file.originalname}`);
+                    cb(null, `${Date.now()}-${file.originalname}`)
                 },
             }),
         }),
     )
     async upload(@Body() dto: UploadFilesDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
-        await this.driveService.upload(files, dto);
+        await this.driveService.upload(files, dto)
     }
 }

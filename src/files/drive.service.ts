@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, StreamableFile } from '@nestjs/common'
 import Entry from './interfaces/entry.interface'
 import * as fs from 'fs'
 import * as console from 'console'
@@ -15,6 +15,8 @@ import { Folders } from 'src/database/folders.entity'
 import { Drives } from 'src/database/drive.entity'
 import { Files } from 'src/database/files.entity'
 import { Users } from 'src/database/users.entity'
+import { createReadStream } from 'fs';
+import { join } from 'path';
 
 @Injectable()
 export class DriveService {
@@ -123,11 +125,32 @@ export class DriveService {
         });
     }
 
-    async getFile(id: string): Promise<Object> { 
-        // const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
+    private async _getFile(id: string): Promise<Object> {
+        return await this.filesRepository.findOne({ where: { id: id  }})
+    }
+
+    async downloadFile(id: string): Promise<StreamableFile> { 
+        const f = await this._getFile(id)
+        // @ts-ignore
+        const file = createReadStream(join(process.cwd(), 'drive/' + this.userId + '/' + f.path))
+        return new StreamableFile(file,  {
+            type: 'application/json',
+            // @ts-ignore
+            disposition: 'attachment; filename="' + f.name + '"',
+            // If you want to define the Content-Length value to another value instead of file's length:
+            // length: 123,
+          })
+
+         
+        /*// const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
         return await this.dataSource.manager.findOne(Files, {
             where: { id: id },
-        });
+        });*/
+    }
+
+    async getFile(id: string): Promise<Object> { 
+        // const contentsAsAsyncGenerator: DirectoryListing = this.storage.list(path)
+        return this._getFile(id);
     }
 
     async getFiles(folderId?: string): Promise<Object> {
