@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles, StreamableFile, Param } from '@nestjs/common'
-import { UploadFilesDTO } from './dto/upload.dto'
+import { UploadDTO } from './dto/upload.dto'
 import { DriveService } from './drive.service'
 import Entry from './interfaces/entry.interface'
 import { FileStorage, Visibility, DirectoryListing, StatEntry } from '@flystorage/file-storage';
@@ -39,7 +39,7 @@ export class FileController {
             }),
         }),
     )
-    async upload(@Body() dto: UploadFilesDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
-        await this.fileService.upload(files, dto)
+    async upload(@Body() dto: UploadDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
+        await this.filesService.upload(files, dto.folderId)
     }
 }

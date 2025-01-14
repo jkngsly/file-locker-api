@@ -48,23 +48,6 @@ export class DriveService {
         return path;
     }
 
-    private async write(file: Express.Multer.File, path: string): Promise<boolean> {
-        try {
-            // TODO: Check for duplicates
-            const content = fs.createReadStream(file.path)
-
-            // TODO: SEPARATE 
-            let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.userId)
-            let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
-
-            await fileStorage.write(path, content)
-            return true
-        } catch (err) {
-            if (err instanceof UnableToWriteFile) {
-                console.log(err)
-            }
-        }
-    }
 
     private async getRootFolder() { 
         const drive = await this.dataSource.manager.findOne(Drive, {
@@ -80,6 +63,10 @@ export class DriveService {
         return await this.dataSource.manager.findOne(Folder, {
             where: { drive_id: drive.id, is_root: true },
         });
+    }
+
+    async createFile(file: Express.Multer.File, folder: Folder) { 
+        this._write(file, folder.path)
     }
 
     private async _getFile(id: string): Promise<Object> {

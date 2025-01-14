@@ -2,13 +2,16 @@ import session from "express-session";
 import { Injectable, StreamableFile } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
-import { createReadStream } from "fs";
-import { join } from "path";
+import * as fs from 'fs'
+import { join, resolve } from "path";
 
 import { HaidaFile } from "src/database/haida-file.entity";
 import { UploadDTO } from "src/files/dto/upload.dto";
 import { Folder } from "src/database/folder.entity";
 import { DriveService } from "src/files/drive.service";
+import { FileStorage, UnableToWriteFile } from "@flystorage/file-storage";
+import { LocalStorageAdapter } from "@flystorage/local-fs";
+import { Drive } from "src/database/drive.entity";
 
 interface FileQueryInterface {
     id?: string
@@ -20,9 +23,32 @@ export class FilesService {
     constructor(
         @InjectRepository(HaidaFile)
         private filesRepository: Repository<HaidaFile>,
+        private driveRepository: Repository<Drive>,
         private driveService: DriveService,
         private readonly dataSource: DataSource
     ) { }
+
+    private async _getDrive(): Promise<Drive> { 
+        const drive = await this.driveRepository.findOne({
+            // @ts-ignore
+            where: { user_id: session.userId }
+        });
+
+        if (!drive) {
+            throw new Error('Drive not found');
+        }
+
+        return drive;
+    }
+
+    private async _getRootFolder(): Promise<Folder> {
+        const drive: Drive = await this._getDrive(); 
+        // Fetch the parent folder
+        return await this.dataSource.manager.findOne(Folder, {
+            where: { drive_id: drive.id, is_root: true },
+        });
+    }
+
 
     private async _get(query: FileQueryInterface, relations?: string[]): Promise<HaidaFile> {
         const find = { 
@@ -30,6 +56,43 @@ export class FilesService {
             relations: [...relations]
         }
         return await this.filesRepository.findOne(find)
+    }
+
+    private async _write(file: Express.Multer.File, path: string): Promise<boolean> {
+        try {
+            // TODO: Check for duplicates
+            const content = fs.createReadStream(file.path)
+
+            // TODO: SEPARATE 
+            let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.userId)
+            let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
+
+            await fileStorage.write(path, content)
+            return true
+        } catch (err) {
+            if (err instanceof UnableToWriteFile) {
+                console.log(err)
+            }
+        }
+    }
+
+    private _save(file: Express.Multer.File, folder: Folder) { 
+        return this.filesRepository.save({
+            folder: folder,
+            name: file.originalname,
+            path: folder.path + "/" + file.originalname,
+            is_media: this._isMedia(file),
+            mime_type: file.mimetype
+        })
+    }
+
+    private _isMedia(file: Express.Multer.File): boolean { 
+        // Define arrays of audio and video MIME types
+        const audioMimeTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/webm', 'audio/aac'];
+        const videoMimeTypes = ['video/mp4', 'video/ogg', 'video/webm', 'video/avi', 'video/mkv'];
+
+        // Check if the file's MIME type is in either the audio or video lists
+        return audioMimeTypes.includes(file.mimetype) || videoMimeTypes.includes(file.mimetype);
     }
 
     async getById(id: string): Promise<HaidaFile> {
@@ -42,59 +105,39 @@ export class FilesService {
         const haidaFile: HaidaFile = await this.getById(id)
         // @ts-ignore
         const path = 'drive/' + session.userId + '/' + haidaFile.path;
-        return new StreamableFile(createReadStream(join(process.cwd(), path)), {
+        return new StreamableFile(fs.createReadStream(join(process.cwd(), path)), {
             type: 'application/json',
             // @ts-ignore
             disposition: 'attachment; filename="' + haidaFile.name + '"',
         })
     }
 
-    async upload(files: Array<Express.Multer.File>, dto: UploadDTO) {
-        files.forEach((file: Express.Multer.File) => {
-            this.driveService.createFile(file, dto.folderId);
-/*
-        let parentFolder: Folder | undefined = undefined
-        let path = ""
+    async upload(files: Array<Express.Multer.File>, folderId: string) {
+        let folder = undefined
 
-        const entityManager = this.dataSource.manager
-
-        if (!dto.folderId) {
-            parentFolder = await this.getRootFolder()
+        if(!folderId || folderId == "root") { 
+            folder = await this._getRootFolder();
         } else {
-            // Fetch the parent folder
-            parentFolder = await entityManager.findOne(Folder, {
-                where: { id: dto.folderId },
-            });
-        }
-        if (!parentFolder) {
-            throw new Error('Parent folder not found');
+            // Validate the folder ID belongs to the user 
+            // @ts-ignore
+            folder = await this.dateSource.manager.findOne(Folder, { where: { user_id: session.userId, id: folderId }})
         }
 
-        // Construct the path based on the parent folder's path
-        path += `${parentFolder.path}`
-      
+        if(!folder) {
+            throw new Error('Folder not found');
+        }
 
         files.forEach((file: Express.Multer.File) => {
-            /*
-            const filePath = path + "/" + file.originalname;
-
-            this.driveService.write(file, filePath)
-                .then(() => {
-                    // Remove the file from /tmp
-                    unlink(file.path, (err) => {
-                        if (err) throw err
-                    })
-
-                    return this.filesRepository.save({
-                        folder: parentFolder,
-                        name: file.originalname,
-                        path: filePath,
-                        is_media: false,
-                        mime_type: file.mimetype
-                    })
+            this._write(file, folder.path)
+            .then(() => {
+                // Remove the file from /tmp
+                fs.unlink(file.path, (err) => {
+                    if (err) throw err
                 })
-           
-        }) */
+                
+                // Save to database
+                this._save(file, folder);
+            })
+        })
     }
-
 }

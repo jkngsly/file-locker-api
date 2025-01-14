@@ -35,9 +35,4 @@ export class HaidaFile extends BaseEntity {
     () {
         this.cover_photo_link = `http://127.0.0.1:4000/destinations/${}`;
     }*/
-
-    async getDrivePath() {
-        //TODO: production/devmode  
-        return process.env.APP_HOST + "/file/" + this.id + "/download";
-    }
 }
