@@ -1,18 +1,18 @@
-import { Users } from 'src/database/users.entity'
+import { User } from 'src/database/user.entity'
 import { BaseEntity } from './base.entity'
-import { Folders } from './folders.entity'
+import { Folder } from './folder.entity'
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm'
 
 @Entity()
-export class Drives extends BaseEntity { 
+export class Drive extends BaseEntity { 
     @Column()
     user_id: string
 
-    @OneToOne(() => Users)
+    @OneToOne(() => User)
     @JoinColumn({ name: "user_id" })
-    user: Users
+    user: User
     
-    @OneToMany(() => Folders, (folder) => folder.id)
+    @OneToMany(() => Folder, (folder) => folder.id)
     @JoinColumn({ name: "drive_id" })
-    folders: Folders[]
+    folders: Folder[]
 }

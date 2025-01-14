@@ -9,12 +9,12 @@ import { unlink } from 'node:fs'
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { createFolderDTO } from 'src/files/dto/create-folder.dto'
-import { UploadFilesDTO } from 'src/files/dto/upload-files.dto'
+import { UploadFilesDTO } from 'src/files/dto/upload.dto'
 import { createDriveDTO } from 'src/files/dto/create-drive.dto'
-import { Folders } from 'src/database/folders.entity'
+import { Folder, Folders } from 'src/database/folder.entity'
 import { Drives } from 'src/database/drive.entity'
 import { Files } from 'src/database/files.entity'
-import { Users } from 'src/database/users.entity'
+import { Users } from 'src/database/user.entity'
 import { createReadStream } from 'fs';
 import { join } from 'path';
 
@@ -48,49 +48,6 @@ export class DriveService {
         return path;
     }
 
-    async upload(files: Array<Express.Multer.File>, dto: UploadFilesDTO) {
-        let parentFolder: Folders | undefined = undefined
-        let path = ""
-
-        // Access the entity manager from the DataSource
-        const entityManager = this.dataSource.manager
-     
-        if(!dto.folderId) { 
-            parentFolder = await this.getRootFolder()
-        } else { 
-            // Fetch the parent folder
-            parentFolder = await entityManager.findOne(Folders, {
-                where: { id: dto.folderId },
-            });
-        }
-        if (!parentFolder) {
-            throw new Error('Parent folder not found');
-        }
-
-        // Construct the path based on the parent folder's path
-        path += `${parentFolder.path}`
-        
-        files.forEach((file: Express.Multer.File, index) => {
-            const filePath = path + "/" + file.originalname;
-
-            this.write(file, filePath)
-                .then(() => {
-                    // Remove the file from /tmp
-                    unlink(file.path, (err) => {
-                        if (err) throw err
-                    })
-
-                    return this.filesRepository.save({
-                        folder: parentFolder,
-                        name: file.originalname,
-                        path: filePath,
-                        is_media: false,
-                        mime_type: file.mimetype
-                    })
-                })
-        })
-    }
-
     private async write(file: Express.Multer.File, path: string): Promise<boolean> {
         try {
             // TODO: Check for duplicates
@@ -110,9 +67,9 @@ export class DriveService {
     }
 
     private async getRootFolder() { 
-        // Find the associated drive
-        const drive = await this.dataSource.manager.findOne(Drives, {
-            where: { user_id: this.userId }
+        const drive = await this.dataSource.manager.findOne(Drive, {
+            // @ts-ignore
+            where: { user_id: session.userId }
         });
 
         if (!drive) {
@@ -120,7 +77,7 @@ export class DriveService {
         }
 
         // Fetch the parent folder
-        return await this.dataSource.manager.findOne(Folders, {
+        return await this.dataSource.manager.findOne(Folder, {
             where: { drive_id: drive.id, is_root: true },
         });
     }

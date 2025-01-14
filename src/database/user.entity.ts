@@ -1,8 +1,8 @@
 import { BaseEntity } from './base.entity'
 import { Column, Entity, OneToMany } from 'typeorm'
 
-@Entity()
-export class Users extends BaseEntity { 
+@Entity('users')
+export class User extends BaseEntity { 
     @Column()
     email!: string
 

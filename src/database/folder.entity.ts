@@ -1,22 +1,22 @@
-import { Drives } from 'src/database/drive.entity'
+import { Drive } from 'src/database/drive.entity'
 import { BaseEntity } from './base.entity'
-import { Files } from './files.entity'
+import { HaidaFile } from './haida-file.entity'
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Tree, TreeChildren, TreeLevelColumn, TreeParent } from 'typeorm'
 
-@Entity()
+@Entity('folders')
 @Tree("closure-table")
-export class Folders extends BaseEntity {
+export class Folder extends BaseEntity {
     @Column()
     drive_id: string
 
     @Column()
     parent_id: string
     
-    @ManyToOne(() => Drives, (drive) => drive.id)
-    drive: Drives
+    @ManyToOne(() => Drive, (drive) => drive.id)
+    drive: Drive
 
-    @OneToMany(() => Files, (file) => file.folder)
-    files: Files[]
+    @OneToMany(() => HaidaFile, (file) => file.folder)
+    files: HaidaFile[]
 
     @Column()
     name!: string
@@ -25,10 +25,10 @@ export class Folders extends BaseEntity {
     path!: string
 
     @TreeChildren()
-    children: Folders[]
+    children: Folder[]
 
     @TreeParent()
-    parent: Folders
+    parent: Folder
 
     @Column({
         default: 0

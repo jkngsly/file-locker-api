@@ -1,18 +1,26 @@
 import { Module } from '@nestjs/common'
-import { FilesController } from './files.controller'
-import { FoldersController } from './folders.controller'
-import { DrivesController } from './drive.controller'
-import { DriveService } from './drive.service'
 import { TypeOrmModule } from '@nestjs/typeorm'
-import { Files } from '../database/files.entity'
-import { Drives } from '../database/drive.entity'
-import { Folders } from '../database/folders.entity'
-import { Users } from '../database/users.entity'
+
+/* Controllers */
+import { DrivesController } from './drive.controller'
+import { FoldersController } from './folders.controller'
+import { FileController } from './file.controller'
+
+/* Services */
+import { DriveService } from './drive.service'
+import { FoldersService } from './folders.service'
+import { FilesService } from './files.service'
+
+/* Entities */
+import { Drive } from '../database/drive.entity'
+import { Folder } from '../database/folder.entity'
+import { HaidaFile } from '../database/haida-file.entity'
+import { User } from '../database/user.entity'
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Files, Drives, Folders, Users])],
-    controllers: [DrivesController, FilesController, FoldersController],
-    providers: [DriveService],
-    exports: [DriveService],
+    imports: [TypeOrmModule.forFeature([HaidaFile, Drive, Folder, User])],
+    controllers: [DrivesController, FileController, FoldersController],
+    providers: [DriveService, FoldersService, FilesService],
+    exports: [DriveService, FoldersService, FilesService],
 })
 export class DriveModule {}

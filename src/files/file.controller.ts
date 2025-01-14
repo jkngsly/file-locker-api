@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles, StreamableFile } from '@nestjs/common'
-import { UploadFilesDTO } from './dto/upload-files.dto'
+import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles, StreamableFile, Param } from '@nestjs/common'
+import { UploadFilesDTO } from './dto/upload.dto'
 import { DriveService } from './drive.service'
 import Entry from './interfaces/entry.interface'
 import { FileStorage, Visibility, DirectoryListing, StatEntry } from '@flystorage/file-storage';
@@ -7,31 +7,28 @@ import { Express } from 'express'
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { createReadStream } from 'fs';
+import { FilesService } from 'src/files/files.service';
 
-@Controller('files')
-export class FilesController {
-    constructor(private driveService: DriveService) { }
+@Controller('file')
+export class FileController {
+    constructor(
+        private filesService: FilesService
+    ) { }
 
-    @Get('')
-    async getFiles(@Query('folderId') folderId: string = null)
+    @Get(':id')
+    async getFile(@Param('id') id: string)
         : Promise<Object> {
-        return this.driveService.getFiles(folderId)
-    }
-    
-    @Get('file')
-    async getFile(@Query('id') id: string = null)
-        : Promise<Object> {
-        return this.driveService.getFile(id)
+        return this.filesService.getById(id)
     }
 
     @Get('download') 
     async readFile(@Query('id') id: string) : Promise<StreamableFile> { 
-        return this.driveService.downloadFile(id)
+        return this.filesService.download(id)
     }
 
     @Post('upload')
-    // TODO: Max file count setting
     @UseInterceptors(
+        // TODO: Max file count config
         FilesInterceptor('files[]', 10, {
             storage: diskStorage({
                 destination: 'tmp',
@@ -43,6 +40,6 @@ export class FilesController {
         }),
     )
     async upload(@Body() dto: UploadFilesDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
-        await this.driveService.upload(files, dto)
+        await this.fileService.upload(files, dto)
     }
 }

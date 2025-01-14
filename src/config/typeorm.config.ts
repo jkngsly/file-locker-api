@@ -1,10 +1,10 @@
 import { DataSource } from 'typeorm'
 import { config } from 'dotenv'
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';  // Correct way to import the naming strategy
-import { Folders } from 'src/database/folders.entity';
+import { Folder } from 'src/database/folder.entity';
 import { Drives } from 'src/database/drive.entity';
-import { Files } from 'src/database/files.entity'
-import { Users } from 'src/database/users.entity'
+import { HaidaFile } from 'src/database/haida-file.entity'
+import { User } from 'src/database/user.entity'
 
 config()
 
@@ -19,7 +19,7 @@ const AppDataSource = new DataSource({
     username: process.env.DATABASE_USER,
     password: process.env.DATABASE_pASSWORD,
     database: process.env.DATABASE_NAME,
-    entities: [Folders, Drives, Files, Users],
+    entities: [Folder, Drives, HaidaFile, User],
     migrations: ['src/database/migrations/*-migration.ts'],
     migrationsRun: false,
     synchronize: false,

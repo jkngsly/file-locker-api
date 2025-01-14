@@ -6,10 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { ConfigModule } from '@nestjs/config'
 import AppDataSource from './config/typeorm.config'
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';  // Correct way to import the naming strategy
-import { Folders } from 'src/database/folders.entity';
+import { Folders } from 'src/database/folder.entity';
 import { Drives } from 'src/database/drive.entity';
 import { Files } from 'src/database/files.entity'
-import { Users } from 'src/database/users.entity'
+import { Users } from 'src/database/user.entity'
 
 @Module({
   imports: [
