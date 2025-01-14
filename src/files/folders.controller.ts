@@ -14,7 +14,7 @@ import { GetFoldersDTO } from 'src/files/dto/get-folders.dto';
 export class FoldersController {
     constructor(private driveService: DriveService) { }
 
-    @Get('get')
+    @Get('/')
     async get(@Query() query: GetFoldersDTO) {
         return this.driveService.getFolders(query.id);
     }

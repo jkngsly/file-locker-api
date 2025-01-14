@@ -248,7 +248,6 @@ export class DriveService {
 
         return await this.dataSource.manager.getTreeRepository(Folders).findDescendantsTree(
             folder,
-            { depth: 1 },
         )
     }
 
