@@ -30,7 +30,7 @@ export class FilesService {
 
     private async _getDrive(): Promise<Drive> { 
         const drive = await this.driveRepository.findOne({
-            // @ts-ignore
+            // @ts-ignore // TODO: session object
             where: { user_id: session.userId }
         });
 
@@ -64,7 +64,8 @@ export class FilesService {
             const content = fs.createReadStream(file.path)
 
             // TODO: SEPARATE 
-            let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.userId)
+            // @ts-ignore // TODO: session object
+            let rootDirectory: string = resolve(process.cwd(), 'drive/' + session.userId)
             let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
 
             await fileStorage.write(path, content)
@@ -103,7 +104,7 @@ export class FilesService {
 
     async download(id: string): Promise<StreamableFile> {
         const haidaFile: HaidaFile = await this.getById(id)
-        // @ts-ignore
+        // @ts-ignore // TODO: session object
         const path = 'drive/' + session.userId + '/' + haidaFile.path;
         return new StreamableFile(fs.createReadStream(join(process.cwd(), path)), {
             type: 'application/json',
@@ -119,7 +120,7 @@ export class FilesService {
             folder = await this._getRootFolder();
         } else {
             // Validate the folder ID belongs to the user 
-            // @ts-ignore
+            // @ts-ignore // TODO: session object
             folder = await this.dateSource.manager.findOne(Folder, { where: { user_id: session.userId, id: folderId }})
         }
 
