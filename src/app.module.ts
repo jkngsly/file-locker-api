@@ -4,12 +4,11 @@ import { AppService } from './app.service'
 import { DriveModule } from './drive/drive.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ConfigModule } from '@nestjs/config'
-import AppDataSource from './config/typeorm.config'
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';  // Correct way to import the naming strategy
-import { Folders } from 'src/database/folder.entity';
-import { Drives } from 'src/database/drive.entity';
-import { Files } from 'src/database/files.entity'
-import { Users } from 'src/database/user.entity'
+import { Folder } from 'src/database/folder.entity';
+import { Drive } from 'src/database/drive.entity';
+import { HaidaFile } from 'src/database/haida-file.entity'
+import { User } from 'src/database/user.entity'
 
 @Module({
   imports: [
@@ -27,7 +26,7 @@ import { Users } from 'src/database/user.entity'
       username: process.env.DATABASE_USER,
       password: process.env.DATABASE_pASSWORD,
       database: process.env.DATABASE_NAME,
-      entities: [Folders, Drives, Files, Users],
+      entities: [Folder, Drive, HaidaFile, User],
       migrations: [__dirname + '/../database/migrations/*-migration.ts'],
       migrationsRun: false,
       synchronize: false,
