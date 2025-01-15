@@ -3,7 +3,7 @@ import { BaseEntity } from './base.entity'
 import { Folder } from './folder.entity'
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm'
 
-@Entity()
+@Entity('drives')
 export class Drive extends BaseEntity { 
     @Column()
     user_id: string

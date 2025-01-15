@@ -16,8 +16,8 @@ export class FileController {
         return this.filesService.getById(id)
     }
 
-    @Get('download') 
-    async readFile(@Query('id') id: string) : Promise<StreamableFile> { 
+    @Get(':id/download') 
+    async readFile(@Param('id') id: string) : Promise<StreamableFile> { 
         return this.filesService.download(id)
     }
 

@@ -1,5 +1,5 @@
 import session from "express-session";
-import { Injectable, StreamableFile } from "@nestjs/common";
+import { Inject, Injectable, StreamableFile } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { Folder } from "src/database/folder.entity";
@@ -10,13 +10,14 @@ import { BaseService } from "src/drive/services/base.service";
 import { resolve } from "path";
 import { FileStorage } from "@flystorage/file-storage";
 import { LocalStorageAdapter } from "@flystorage/local-fs";
+import { REQUEST } from "@nestjs/core";
 
 interface FolderQueryInterface {
     id?: string
 }
 
 @Injectable()
-export class FoldersService extends BaseService<Drive, Folder> {
+export class FoldersService extends BaseService {
     constructor(
         @InjectRepository(Folder)
         protected readonly foldersRepository: Repository<Folder>,
@@ -27,9 +28,12 @@ export class FoldersService extends BaseService<Drive, Folder> {
         @InjectRepository(HaidaFile)
         private filesRepository: Repository<HaidaFile>,
 
+        @Inject(REQUEST)
+        protected readonly request: Request,
+
         private readonly dataSource: DataSource
     ) { 
-        super()
+        super(foldersRepository, driveRepository, request)
     }
 
     
@@ -42,7 +46,7 @@ export class FoldersService extends BaseService<Drive, Folder> {
 
         // TODO: SEPARATE 
         // @ts-ignore // TODO: session object
-        let rootDirectory: string = resolve(process.cwd(), 'drive/' + session.userId)
+        let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.request.session.defaultData['userId'])
         let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
 
         // Perform additional operations like creating a directory on your storage system
@@ -66,7 +70,7 @@ export class FoldersService extends BaseService<Drive, Folder> {
         // Find the associated drive
         const drive = await this.dataSource.manager.findOne(Drive, {
             // @ts-ignore // TODO: session object
-            where: { user_id: session.userId },
+            where: { user_id: this.request.session.defaultData['userId'] },
         });
 
         if (!drive) {

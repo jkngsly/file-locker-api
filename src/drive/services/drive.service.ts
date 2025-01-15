@@ -1,4 +1,6 @@
-import { Injectable, StreamableFile } from '@nestjs/common'
+import session from "express-session";
+
+import { Inject, Injectable, StreamableFile } from '@nestjs/common'
 import { resolve } from 'path'
 import { FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/file-storage'
 import { LocalStorageAdapter } from '@flystorage/local-fs'
@@ -8,9 +10,10 @@ import { Folder } from 'src/database/folder.entity'
 import { Drive } from 'src/database/drive.entity'
 import { BaseService } from './base.service';
 import { HaidaFile } from 'src/database/haida-file.entity'
+import { REQUEST } from "@nestjs/core";
 
 @Injectable()
-export class DriveService extends BaseService<Drive, Folder> {
+export class DriveService extends BaseService {
     constructor(
         @InjectRepository(Folder)
         protected readonly foldersRepository: Repository<Folder>,
@@ -21,9 +24,12 @@ export class DriveService extends BaseService<Drive, Folder> {
         @InjectRepository(HaidaFile)
         private filesRepository: Repository<HaidaFile>,
 
+        @Inject(REQUEST)
+        protected readonly request: Request,
+
         private readonly dataSource: DataSource
     ) { 
-        super()
+        super(foldersRepository, driveRepository, request)
     }
 
     private rootDirectory: string = resolve(process.cwd(), 'drive')
