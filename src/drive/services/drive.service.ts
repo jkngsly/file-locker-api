@@ -1,4 +1,4 @@
-import session from "express-session";
+import session from "express-session"
 
 import { Inject, Injectable, StreamableFile } from '@nestjs/common'
 import { resolve } from 'path'
@@ -8,9 +8,9 @@ import { DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Folder } from 'src/database/folder.entity'
 import { Drive } from 'src/database/drive.entity'
-import { BaseService } from './base.service';
+import { BaseService } from './base.service'
 import { HaidaFile } from 'src/database/haida-file.entity'
-import { REQUEST } from "@nestjs/core";
+import { REQUEST } from "@nestjs/core"
 
 @Injectable()
 export class DriveService extends BaseService {
@@ -55,6 +55,6 @@ export class DriveService extends BaseService {
             level: 0,
             drive: drive,
             is_root: true
-        }); 
+        }) 
     }*/
 }

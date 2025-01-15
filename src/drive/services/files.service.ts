@@ -1,19 +1,19 @@
-import session from "express-session";
-import { Inject, Injectable, StreamableFile } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { DataSource, Repository } from "typeorm";
+import session from "express-session"
+import { Inject, Injectable, StreamableFile } from "@nestjs/common"
+import { InjectRepository } from "@nestjs/typeorm"
+import { DataSource, Repository } from "typeorm"
 import * as fs from 'fs'
-import { join, resolve } from "path";
+import { join, resolve } from "path"
 
-import { HaidaFile } from "src/database/haida-file.entity";
-import { UploadDTO } from "src/drive/dto/upload.dto";
-import { Folder } from "src/database/folder.entity";
-import { DriveService } from "src/drive/services/drive.service";
-import { FileStorage, UnableToWriteFile } from "@flystorage/file-storage";
-import { LocalStorageAdapter } from "@flystorage/local-fs";
-import { Drive } from "src/database/drive.entity";
-import { BaseService } from "src/drive/services/base.service";
-import { REQUEST } from "@nestjs/core";
+import { HaidaFile } from "src/database/haida-file.entity"
+import { UploadDTO } from "src/drive/dto/upload.dto"
+import { Folder } from "src/database/folder.entity"
+import { DriveService } from "src/drive/services/drive.service"
+import { FileStorage, UnableToWriteFile } from "@flystorage/file-storage"
+import { LocalStorageAdapter } from "@flystorage/local-fs"
+import { Drive } from "src/database/drive.entity"
+import { BaseService } from "src/drive/services/base.service"
+import { REQUEST } from "@nestjs/core"
 
 interface FileQueryInterface {
     id?: string
@@ -83,11 +83,11 @@ export class FilesService extends BaseService {
 
     private _isMedia(file: Express.Multer.File): boolean { 
         // Define arrays of audio and video MIME types
-        const audioMimeTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/webm', 'audio/aac'];
-        const videoMimeTypes = ['video/mp4', 'video/ogg', 'video/webm', 'video/avi', 'video/mkv'];
+        const audioMimeTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/webm', 'audio/aac']
+        const videoMimeTypes = ['video/mp4', 'video/ogg', 'video/webm', 'video/avi', 'video/mkv']
 
         // Check if the file's MIME type is in either the audio or video lists
-        return audioMimeTypes.includes(file.mimetype) || videoMimeTypes.includes(file.mimetype);
+        return audioMimeTypes.includes(file.mimetype) || videoMimeTypes.includes(file.mimetype)
     }
 
     async getById(id: string): Promise<HaidaFile> {
@@ -106,19 +106,19 @@ export class FilesService extends BaseService {
     async download(id: string): Promise<StreamableFile> {
         const haidaFile: HaidaFile = await this.getById(id)
         // @ts-ignore // TODO: session object
-        const path = 'drive/' + this.request.session.defaultData['userId'] + '/' + haidaFile.path;
+        const path = 'drive/' + this.request.session.defaultData['userId'] + '/' + haidaFile.path
         return new StreamableFile(fs.createReadStream(join(process.cwd(), path)), {
             type: 'application/json',
             // @ts-ignore
-            disposition: 'attachment; filename="' + haidaFile.name + '"',
+            disposition: 'attachment filename="' + haidaFile.name + '"',
         })
     }
 
     async upload(files: Array<Express.Multer.File>, folderId: string) {
         let folder = undefined
-
+            
         if(!folderId || folderId == "root") { 
-            folder = await this._getRootFolder();
+            folder = await this._getRootFolder()
         } else {
             // Validate the folder ID belongs to the user 
             // @ts-ignore // TODO: session object
@@ -126,7 +126,7 @@ export class FilesService extends BaseService {
         }
 
         if(!folder) {
-            throw new Error('Folder not found');
+            throw new Error('Folder not found')
         }
 
         files.forEach((file: Express.Multer.File) => {
@@ -138,7 +138,7 @@ export class FilesService extends BaseService {
                 })
                 
                 // Save to database
-                this._save(file, folder);
+                this._save(file, folder)
             })
         })
     }

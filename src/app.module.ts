@@ -4,9 +4,9 @@ import { AppService } from './app.service'
 import { DriveModule } from './drive/drive.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ConfigModule } from '@nestjs/config'
-import { SnakeNamingStrategy } from 'typeorm-naming-strategies';  // Correct way to import the naming strategy
-import { Folder } from 'src/database/folder.entity';
-import { Drive } from 'src/database/drive.entity';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies'  // Correct way to import the naming strategy
+import { Folder } from 'src/database/folder.entity'
+import { Drive } from 'src/database/drive.entity'
 import { HaidaFile } from 'src/database/haida-file.entity'
 import { User } from 'src/database/user.entity'
 
