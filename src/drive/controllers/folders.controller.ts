@@ -1,26 +1,32 @@
 import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles } from '@nestjs/common'
-import { DriveService } from '../services/drive.service'
+import { FilesService } from '../services/files.service'
 import { createFolderDTO } from 'src/drive/dto/create-folder.dto';
 import { GetFoldersDTO } from 'src/drive/dto/get-folders.dto';
 import { Folder } from 'src/database/folder.entity';
 import { HaidaFile } from 'src/database/haida-file.entity';
+import { FoldersService } from 'src/drive/services/folders.service';
 
 @Controller('folders')
 export class FoldersController {
-    constructor(private driveService: DriveService) { }
+    constructor(
+        private foldersService: FoldersService,
+        private filesService: FilesService
+    ) { }
 
     @Get('')
-    async get(@Query() query: GetFoldersDTO): Promise<Folder[]> {
-        return this.driveService.getFolders(query.id);
+    async get(): Promise<Folder[]> {
+        return this.foldersService.getTree();
     }
 
     @Get(':id/files')
     async getFolderFiles(@Query() query: GetFoldersDTO): Promise<HaidaFile[]> {
-        return this.driveService.getFolders(query.id);
+        // TODO: validate user ownership/access to folder
+        // @ts-ignore
+        return this.filesService.getByFolderId(query.id);
     }
 
     @Post('create')
     async create(@Body() dto: createFolderDTO): Promise<any> { // TODO: promise return type
-        return this.driveService.createFolder(dto);
+        return this.foldersService.create(dto);
     }
 }

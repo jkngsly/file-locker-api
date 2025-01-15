@@ -12,48 +12,31 @@ import { DriveService } from "src/drive/services/drive.service";
 import { FileStorage, UnableToWriteFile } from "@flystorage/file-storage";
 import { LocalStorageAdapter } from "@flystorage/local-fs";
 import { Drive } from "src/database/drive.entity";
+import { BaseService } from "src/drive/services/base.service";
 
 interface FileQueryInterface {
     id?: string
-    //name?: string
+    folder_id?: string
 }
 
 @Injectable()
-export class FilesService {
+export class FilesService extends BaseService<Drive, Folder> {
     constructor(
+        @InjectRepository(Folder)
+        protected readonly foldersRepository: Repository<Folder>,
+        
+        @InjectRepository(Drive)
+        protected readonly driveRepository: Repository<Drive>,
+
         @InjectRepository(HaidaFile)
         private filesRepository: Repository<HaidaFile>,
-        private driveRepository: Repository<Drive>,
-        private driveService: DriveService,
-        private readonly dataSource: DataSource
-    ) { }
-
-    private async _getDrive(): Promise<Drive> { 
-        const drive = await this.driveRepository.findOne({
-            // @ts-ignore // TODO: session object
-            where: { user_id: session.userId }
-        });
-
-        if (!drive) {
-            throw new Error('Drive not found');
-        }
-
-        return drive;
+    ) { 
+        super()
     }
-
-    private async _getRootFolder(): Promise<Folder> {
-        const drive: Drive = await this._getDrive(); 
-        // Fetch the parent folder
-        return await this.dataSource.manager.findOne(Folder, {
-            where: { drive_id: drive.id, is_root: true },
-        });
-    }
-
 
     private async _get(query: FileQueryInterface, relations?: string[]): Promise<HaidaFile> {
         const find = { 
-            where: { ...query },
-            relations: [...relations]
+            where: { ...query }
         }
         return await this.filesRepository.findOne(find)
     }
@@ -99,6 +82,12 @@ export class FilesService {
     async getById(id: string): Promise<HaidaFile> {
         return this._get({
             id: id
+        })
+    }
+
+    async getByFolderId(folderId: string): Promise<HaidaFile> {
+        return this._get({
+            folder_id: folderId
         })
     }
 
