@@ -96,7 +96,8 @@ export class FilesService extends BaseService {
         })
     }
 
-    async getByFolderId(folderId: string): Promise<HaidaFile[]> {
+    async getByFolderId(folderId?: string): Promise<HaidaFile[]> {
+            
         return await this._get({
             folder_id: folderId
         })

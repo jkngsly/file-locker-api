@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles } from '@nestjs/common'
+import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles, Param } from '@nestjs/common'
 import { FilesService } from '../services/files.service'
 import { createFolderDTO } from 'src/drive/dto/create-folder.dto';
 import { GetFoldersDTO } from 'src/drive/dto/get-folders.dto';
@@ -19,10 +19,12 @@ export class FoldersController {
     }
 
     @Get(':id/files')
-    async getFolderFiles(@Query() query: GetFoldersDTO): Promise<HaidaFile[]> {
+    async getFolderFiles(@Param() query: GetFoldersDTO): Promise<HaidaFile[]> {
         // TODO: validate user ownership/access to folder
+        // TODO: get business logic out of controller
+        // TODO: use pipe transform request/resp and account for root folder (no id)
         // @ts-ignore
-        return this.filesService.getByFolderId(query.id);
+        return this.filesService.getByFolderId(query.id == "root" ? undefined : query.id);
     }
 
     @Post('create')
