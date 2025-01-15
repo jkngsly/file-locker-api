@@ -1,12 +1,7 @@
 import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles, StreamableFile, Param } from '@nestjs/common'
 import { UploadDTO } from './dto/upload.dto'
-import { DriveService } from './drive.service'
-import Entry from './interfaces/entry.interface'
-import { FileStorage, Visibility, DirectoryListing, StatEntry } from '@flystorage/file-storage';
-import { Express } from 'express'
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { createReadStream } from 'fs';
 import { FilesService } from 'src/files/files.service';
 
 @Controller('file')
