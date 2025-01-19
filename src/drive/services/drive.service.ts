@@ -6,10 +6,10 @@ import { FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/fi
 import { LocalStorageAdapter } from '@flystorage/local-fs'
 import { DataSource, Repository, SelectQueryBuilder } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Folder } from 'src/database/folder.entity'
-import { Drive } from 'src/database/drive.entity'
+import { Folder } from '@/database/folder.entity'
+import { Drive } from '@/database/drive.entity'
 import { BaseService } from './base.service'
-import { HaidaFile } from 'src/database/haida-file.entity'
+import { HaidaFile } from '@/database/haida-file.entity'
 import { REQUEST } from "@nestjs/core"
 
 @Injectable()
