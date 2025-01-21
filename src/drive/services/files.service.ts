@@ -61,7 +61,7 @@ export class FilesService extends BaseService {
             const newName = filename + ` (${i})` + // document (1)
             (extension !== false ? `.${extension}` : ``) // .txt
 
-            if(!this._exists(path + "/" + newName))
+            if(!await this._exists(path + "/" + newName))
                 rename = newName
             else 
                 i++;
@@ -205,7 +205,7 @@ export class FilesService extends BaseService {
 
             //If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
             // Check for duplicates
-            if(this._exists(folder.path + filename)) { 
+            if(await this._exists(folder.path + filename)) { 
                 filename = await this._getDuplicateRename(filename, folder.path)
             }
 
