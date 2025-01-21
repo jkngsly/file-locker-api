@@ -115,10 +115,10 @@ export class FilesService extends BaseService {
     }
 
     /**
-     * Writes a file's contents in the /tmp folder to the storage adapter using a provided path. If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
+     * Writes Multer file's contents in the /tmp folder to the storage adapter using the provided path. If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
      * 
-     * @param file The File object provided by the NestJS FilesInterceptor [Express Multer middleware]
-     * @param path The full file path (Example: path/to/file.txt)
+     * @param file The Express Multer File object provided by FilesInterceptor middleware
+     * @param path The full file path (Example: "path/to/file.txt")
      * @returns Returns a truthy boolean
      */
     private async _write(file: Express.Multer.File, path: string): Promise<true> {
@@ -141,7 +141,14 @@ export class FilesService extends BaseService {
         }
     }
 
-    private _save(file: Express.Multer.File, folder: Folder) { 
+    /**
+    * Saves a HaidaFile to the database
+    *
+    * @param file The Express Multer File object provided by FilesInterceptor middleware
+    * @param folder The parent Folder Object of the HaidaFile
+    * @returns //TODO 
+    */
+    private _save(file: Express.Multer.File, folder: Folder): Promise<any> { 
         return this.filesRepository.save({
             folder: folder,
             name: file.originalname,
@@ -151,8 +158,16 @@ export class FilesService extends BaseService {
         })
     }
 
+    /**
+    * Determines if a file's mime_type matches a given set of common audio/video types (mpeg, wav, ogg, mp3, webm, aac, mp4, ogg, webm, avi, and mkv)
+    *
+    * @param file The Express Multer File object provided by FilesInterceptor middleware
+    * @param folder The parent Folder Object of the HaidaFile
+    * @returns {boolean} True or false
+    */
     private _isMedia(file: Express.Multer.File): boolean { 
         // Define arrays of audio and video MIME types
+        // TODO: remove hardcode, database of known media types [support for]
         const audioMimeTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/webm', 'audio/aac']
         const videoMimeTypes = ['video/mp4', 'video/ogg', 'video/webm', 'video/avi', 'video/mkv']
 
