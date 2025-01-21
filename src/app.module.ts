@@ -38,10 +38,6 @@ import { User } from 'src/database/user.entity'
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_PIPE,
-      useClass: ValidationPipe
-    }
   ],
 })
 export class AppModule { }

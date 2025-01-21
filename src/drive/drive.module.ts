@@ -12,10 +12,10 @@ import { FoldersService } from './services/folders.service'
 import { FilesService } from './services/files.service'
 
 /* Entities */
-import { Drive } from '../database/drive.entity'
-import { Folder } from '../database/folder.entity'
-import { HaidaFile } from '../database/haida-file.entity'
-import { User } from '../database/user.entity'
+import { Drive } from '@/database/drive.entity'
+import { Folder } from '@/database/folder.entity'
+import { HaidaFile } from '@/database/haida-file.entity'
+import { User } from '@/database/user.entity'
 import { FileStorage } from '@flystorage/file-storage'
 
 @Module({

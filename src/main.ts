@@ -4,12 +4,15 @@ import { NestExpressApplication } from '@nestjs/platform-express'
 import { join } from 'path'
 import * as session from 'express-session'
 import * as cors from 'cors'
+import { BadRequestException, ValidationError, ValidationPipe } from '@nestjs/common'
+import RequestValidationPipe from 'src/pipes/RequestValidation.pipe'
 //import { LoggingInterceptor } from 'src/drive/interceptors/logging.interceptor'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
   app.useStaticAssets(join(__dirname, '..', 'public'))
-  //app.useGlobalInterceptors(new LoggingInterceptor())
+  app.useGlobalPipes(RequestValidationPipe);
+    
   app.use(
     cors(),
 
@@ -30,7 +33,7 @@ async function bootstrap() {
         }
       }
       next()
-    })
+  })
 
   await app.listen(process.env.PORT ?? 4000)
 }
