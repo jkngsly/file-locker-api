@@ -6,7 +6,7 @@ import { DataSource, Repository } from "typeorm"
 import * as fs from 'fs'
 import { join, resolve } from "path"
 
-import { FileStorage, UnableToWriteFile } from "@flystorage/file-storage"
+import { FileStorage, UnableToCheckFileExistence, UnableToWriteFile } from "@flystorage/file-storage"
 import { LocalStorageAdapter } from "@flystorage/local-fs"
 
 import { HaidaFile } from "@/database/haida-file.entity"
@@ -16,6 +16,7 @@ import { Drive } from "@/database/drive.entity"
 import { UploadDTO } from "src/drive/dto/upload.dto"
 import { DriveService } from "src/drive/services/drive.service"
 import { BaseService } from "src/drive/services/base.service"
+import { time } from "console"
 
 interface FileQueryInterface {
     id?: string
@@ -36,35 +37,102 @@ export class FilesService extends BaseService {
 
         @Inject(REQUEST)
         protected readonly request: Request,
+
+        @Inject(FileStorage)
+        protected storage: FileStorage,
     ) { 
-        super(foldersRepository, driveRepository, request)
+        super(foldersRepository, driveRepository, request, storage)
     }
 
-    private async _find(query: FileQueryInterface, relations?: string[]): Promise<HaidaFile> {
+    private  _getExtension(path: string): string|false { 
+        const match = path.match(/[^.]+$/) // Matches everything after the last dot
+        return match ? "." + match[0] : false 
+    }
+
+    private async _getDuplicateRename(path: string): Promise<string> { 
+        const extension = this._getExtension(path);
+        if(extension !== false) { 
+            path = path.replace(extension, '');
+        }
+
+        let rename = "";
+        let i = 1;
+        while(rename === "") { 
+            const newPath = path + ` (${i})` + // document (1)
+            (extension !== false ? `.${extension}` : ``) // .txt
+
+            if(!this._exists(newPath))
+                rename = newPath
+            else 
+                i++;
+        }
+
+        return rename
+    }
+
+    /**
+     * Checks if a file path exists using FlyStorage API's fileExists(path) 
+     * 
+     * @param path The full file path (Example: path/to/file.txt)
+     * @returns {Promise<boolean>} Returns a Promise boolean
+     */
+    private async _exists(path: string): Promise<boolean> { 
+        try { 
+            return this.storage.fileExists(path)
+        } catch(e) { 
+            if (e instanceof UnableToCheckFileExistence) {
+                // handle error
+            }
+        }
+    }
+
+    
+    /**
+     * Executes a repository findOne method 
+     * 
+     * @param where The where object in repository's findOne method (Example: { path: "path/to/file.txt"})
+     * @returns {Promise<HaidaFile>|Promise<null>} Promise containing either the HaidaFile or null
+     */
+    private async _find(where: FileQueryInterface, relations?: string[]): Promise<HaidaFile> {
         const find = { 
-            where: { ...query }
+            where: { ...where }
         }
         return await this.filesRepository.findOne(find)
     }
 
-    private async _get(query: FileQueryInterface, relations?: string[]): Promise<HaidaFile[]> {
+    
+    /**
+     * Executes a repository find method  
+     * 
+     * @param where The where object in repository's find method (Example: { path: "path/to/file.txt"})
+     * @returns {Promise<HaidaFile[]>|Promise<null>} Promise containing either the HaidaFile collection or null
+     */
+    private async _get(where: FileQueryInterface, relations?: string[]): Promise<HaidaFile[]> {
         const find = { 
-            where: { ...query }
+            where: { ...where }
         }
         return await this.filesRepository.find(find)
     }
 
-    private async _write(file: Express.Multer.File, path: string): Promise<boolean> {
+    /**
+     * Writes a file's contents in the /tmp folder to the storage adapter using a provided path. If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
+     * 
+     * @param file The File object provided by the NestJS FilesInterceptor [Express Multer middleware]
+     * @param path The full file path (Example: path/to/file.txt)
+     * @returns Returns a truthy boolean
+     */
+    private async _write(file: Express.Multer.File, path: string): Promise<true> {
         try {
-            // TODO: Check for duplicates
-            const content = fs.createReadStream(file.path)
+            const contents = fs.createReadStream(file.path)
 
-            // TODO: SEPARATE 
-            // @ts-ignore // TODO: session object
-            let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.request.session.defaultData['userId'])
-            let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
+            this._initStorageAdapter();
 
-            await fileStorage.write(path, content)
+            // Check for duplicates
+            if(this._exists(path)) { 
+                path += Date.now()
+            }
+
+            this.storage.write(path, contents)
             return true
         } catch (err) {
             if (err instanceof UnableToWriteFile) {
@@ -131,8 +199,14 @@ export class FilesService extends BaseService {
             throw new Error('Folder not found')
         }
 
-        files.forEach((file: Express.Multer.File) => {
-            this._write(file, folder.path)
+        files.forEach(async (file: Express.Multer.File) => {
+
+            let path = folder.path + file.originalname;
+
+            if(await this._exists(path))
+                path = await this._getDuplicateRename(path)
+
+            this._write(file, path)
             .then(() => {
                 // Remove the file from /tmp
                 fs.unlink(file.path, (err) => {
