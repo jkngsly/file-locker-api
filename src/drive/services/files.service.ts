@@ -44,25 +44,25 @@ export class FilesService extends BaseService {
         super(foldersRepository, driveRepository, request, storage)
     }
 
-    private  _getExtension(path: string): string|false { 
-        const match = path.match(/[^.]+$/) // Matches everything after the last dot
+    private  _getExtension(filename: string): string|false { 
+        const match = filename.match(/[^.]+$/) // Matches everything after the last dot
         return match ? "." + match[0] : false 
     }
 
-    private async _getDuplicateRename(path: string): Promise<string> { 
-        const extension = this._getExtension(path);
+    private async _getDuplicateRename(filename: string, path: string): Promise<string> { 
+        const extension = this._getExtension(filename);
         if(extension !== false) { 
-            path = path.replace(extension, '');
+            filename = filename.replace(extension, '');
         }
 
         let rename = "";
         let i = 1;
         while(rename === "") { 
-            const newPath = path + ` (${i})` + // document (1)
+            const newName = filename + ` (${i})` + // document (1)
             (extension !== false ? `.${extension}` : ``) // .txt
 
-            if(!this._exists(newPath))
-                rename = newPath
+            if(!this._exists(path + "/" + newName))
+                rename = newName
             else 
                 i++;
         }
@@ -82,7 +82,7 @@ export class FilesService extends BaseService {
             return this.storage.fileExists(path)
         } catch(e) { 
             if (e instanceof UnableToCheckFileExistence) {
-                // handle error
+                console.log("ERROR", e)
             }
         }
     }
@@ -114,7 +114,7 @@ export class FilesService extends BaseService {
     }
 
     /**
-     * Writes Multer file's contents in the /tmp folder to the storage adapter using the provided path. If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
+     * Writes Multer file's contents in the /tmp folder to the storage adapter using the provided path. 
      * 
      * @param file The Express Multer File object provided by FilesInterceptor middleware
      * @param path The full file path (Example: "path/to/file.txt")
@@ -124,13 +124,6 @@ export class FilesService extends BaseService {
     private async _write(file: Express.Multer.File, path: string): Promise<void> {
         try {
             const contents = fs.createReadStream(file.path)
-            this._initStorageAdapter();
-
-            // Check for duplicates
-            if(this._exists(path)) { 
-                path += Date.now()
-            }
-
             return this.storage.write(path, contents)
         } catch (err) {
             if (err instanceof UnableToWriteFile) {
@@ -146,14 +139,8 @@ export class FilesService extends BaseService {
     * @param folder The parent Folder Object of the HaidaFile
     * @returns //TODO 
     */
-    private _save(file: Express.Multer.File, folder: Folder): Promise<any> { 
-        return this.filesRepository.save({
-            folder: folder,
-            name: file.originalname,
-            path: folder.path + "/" + file.originalname,
-            is_media: this._isMedia(file),
-            mime_type: file.mimetype
-        })
+    private _save(file: Object): Promise<any> { 
+        return this.filesRepository.save(file)
     }
 
     /**
@@ -213,11 +200,16 @@ export class FilesService extends BaseService {
         }
 
         files.forEach(async (file: Express.Multer.File) => {
+            let filename = file.originalname
+            this.storage = await this._initStorageAdapter()
 
-            let path = folder.path + file.originalname;
+            //If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
+            // Check for duplicates
+            if(this._exists(folder.path + filename)) { 
+                filename = await this._getDuplicateRename(filename, folder.path)
+            }
 
-            if(await this._exists(path))
-                path = await this._getDuplicateRename(path)
+            const path = folder.path + "/" + filename
 
             this._write(file, path)
             .then(() => {
@@ -227,7 +219,13 @@ export class FilesService extends BaseService {
                 })
                 
                 // Save to database
-                this._save(file, folder)
+                this._save({
+                    folder: folder,
+                    name: filename,
+                    path: path,
+                    is_media: this._isMedia(file),
+                    mime_type: file.mimetype
+                })
             })
         })
     }

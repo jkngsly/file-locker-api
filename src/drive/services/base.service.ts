@@ -58,10 +58,9 @@ export abstract class BaseService {
         return resolve(process.cwd(), 'drive/' + this.request.session.defaultData['userId'])
     }
 
-    protected async _initStorageAdapter(): Promise<boolean> {
+    protected async _initStorageAdapter(): Promise<FileStorage> {
         try { 
-            this.storage = await new FileStorage(new LocalStorageAdapter(await this._getDrivePath()))
-            return true;
+            return new FileStorage(new LocalStorageAdapter(await this._getDrivePath()))
         } catch(e) { 
             console.log(e);
         }
