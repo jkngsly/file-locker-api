@@ -184,6 +184,17 @@ export class FilesService extends BaseService {
         })
     }
 
+    async delete(id: string) { 
+        const file = await this._find({ id: id });
+
+        if (!file) {
+            throw new Error('File not found');
+        }
+
+        file.deleted_at = new Date(); // Set the deletedAt field to current timestamp
+        await this.filesRepository.save(file);
+    }
+
     async upload(files: Array<Express.Multer.File>, folderId: string) {
         let folder = undefined
             
