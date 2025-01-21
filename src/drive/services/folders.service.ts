@@ -32,9 +32,12 @@ export class FoldersService extends BaseService {
         @Inject(REQUEST)
         protected readonly request: Request,
 
+        @Inject(FileStorage)
+        protected storage: FileStorage,
+
         private readonly dataSource: DataSource
     ) { 
-        super(foldersRepository, driveRepository, request)
+        super(foldersRepository, driveRepository, request, storage)
     }
 
     

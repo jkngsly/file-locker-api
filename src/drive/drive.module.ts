@@ -16,11 +16,14 @@ import { Drive } from '../database/drive.entity'
 import { Folder } from '../database/folder.entity'
 import { HaidaFile } from '../database/haida-file.entity'
 import { User } from '../database/user.entity'
+import { FileStorage } from '@flystorage/file-storage'
 
 @Module({
     imports: [TypeOrmModule.forFeature([HaidaFile, Drive, Folder, User])],
     controllers: [DrivesController, FileController, FoldersController],
-    providers: [DriveService, FoldersService, FilesService],
+    providers: [DriveService, FoldersService, FilesService, 
+        // TODO: Not sure why this needs to be included here, errors without it
+        FileStorage],
     exports: [DriveService, FoldersService, FilesService],
 })
 export class DriveModule {}

@@ -74,6 +74,7 @@ export class FilesService extends BaseService {
      * Checks if a file path exists using FlyStorage API's fileExists(path) 
      * 
      * @param path The full file path (Example: path/to/file.txt)
+     * @throws {UnableToCheckFileExistence}
      * @returns {Promise<boolean>} Returns a Promise boolean
      */
     private async _exists(path: string): Promise<boolean> { 
@@ -86,7 +87,6 @@ export class FilesService extends BaseService {
         }
     }
 
-    
     /**
      * Executes a repository findOne method 
      * 
@@ -100,7 +100,6 @@ export class FilesService extends BaseService {
         return await this.filesRepository.findOne(find)
     }
 
-    
     /**
      * Executes a repository find method  
      * 
@@ -119,12 +118,12 @@ export class FilesService extends BaseService {
      * 
      * @param file The Express Multer File object provided by FilesInterceptor middleware
      * @param path The full file path (Example: "path/to/file.txt")
-     * @returns Returns a truthy boolean
+     * @throws {UnableToWriteFile}
+     * @returns Returns a void Promise
      */
-    private async _write(file: Express.Multer.File, path: string): Promise<true> {
+    private async _write(file: Express.Multer.File, path: string): Promise<void> {
         try {
             const contents = fs.createReadStream(file.path)
-
             this._initStorageAdapter();
 
             // Check for duplicates
@@ -132,8 +131,7 @@ export class FilesService extends BaseService {
                 path += Date.now()
             }
 
-            this.storage.write(path, contents)
-            return true
+            return this.storage.write(path, contents)
         } catch (err) {
             if (err instanceof UnableToWriteFile) {
                 console.log(err)

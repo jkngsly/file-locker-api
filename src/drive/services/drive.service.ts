@@ -27,14 +27,13 @@ export class DriveService extends BaseService {
         @Inject(REQUEST)
         protected readonly request: Request,
 
+        @Inject(FileStorage)
+        protected storage: FileStorage,
+
         private readonly dataSource: DataSource
     ) { 
-        super(foldersRepository, driveRepository, request)
+        super(foldersRepository, driveRepository, request, storage)
     }
-
-    private rootDirectory: string = resolve(process.cwd(), 'drive')
-    private storage: FileStorage = new FileStorage(new LocalStorageAdapter(this.rootDirectory))
-    //private queryBuilder: SelectQueryBuilder<Files> = this.filesRepository.createQueryBuilder()
 
     // TODO: Auth layer
     private userId: string = "bbb1adf5-bfbc-45ec-a131-61c97595e8be"
