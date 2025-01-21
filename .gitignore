@@ -130,7 +130,6 @@ dist
 .pnp.*
 
 # Storage
-./drive
-drive2
-tmp
+drive
+tmp/*
 src/database/migrations
