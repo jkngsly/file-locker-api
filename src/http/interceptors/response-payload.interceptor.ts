@@ -13,7 +13,6 @@ export class ResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((data) => {
-
         // File downloads 
         if(data instanceof StreamableFile) {
           return data
@@ -27,10 +26,6 @@ export class ResponseInterceptor implements NestInterceptor {
             errors: [],
             errorMessage: '',
           };}
-      }),
-      catchError((err) => {
-        // Optionally handle and reformat errors here (or use Exception Filters)
-        throw err; // Let the exception filter handle errors
       }),
     );
   }

@@ -40,7 +40,7 @@ const RequestValidationPipe = new ValidationPipe({
       const errors = getPrettyClassValidatorErrors(validationErrors)
 
       return new BadRequestException({
-        message: 'validation error',
+        errorMessage: 'validation error',
         errors: errors,
       });
     }

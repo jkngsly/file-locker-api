@@ -19,7 +19,7 @@ async function bootstrap() {
   
   // Standard response payload format, including exceptions
   app.useGlobalInterceptors(new ResponseInterceptor());
-  app.useGlobalFilters(new AllExceptionsFilter());
+  //app.useGlobalFilters(new AllExceptionsFilter());
 
   app.use(
     cors(),
