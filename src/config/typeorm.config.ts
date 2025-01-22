@@ -23,7 +23,7 @@ const AppDataSource = new DataSource({
     migrations: ['src/database/migrations/*-migration.ts'],
     migrationsRun: false,
     synchronize: false,
-    logging: true,
+    logging: false,
     namingStrategy: new SnakeNamingStrategy(),
 })
 

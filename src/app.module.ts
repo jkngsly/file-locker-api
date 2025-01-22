@@ -1,4 +1,4 @@
-import { Module, ValidationPipe} from '@nestjs/common'
+import { MiddlewareConsumer, Module, RequestMethod, ValidationPipe} from '@nestjs/common'
 import { APP_PIPE } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
@@ -10,6 +10,7 @@ import { Folder } from 'src/database/folder.entity'
 import { Drive } from 'src/database/drive.entity'
 import { HaidaFile } from 'src/database/haida-file.entity'
 import { User } from 'src/database/user.entity'
+import { ResponseMiddleware } from 'src/middleware/pipes/ResponsePayload.pipes'
 
 @Module({
   imports: [
@@ -31,7 +32,7 @@ import { User } from 'src/database/user.entity'
       migrations: [__dirname + '/../database/migrations/*-migration.ts'],
       migrationsRun: false,
       synchronize: false,
-      logging: true,
+      logging: false,
       namingStrategy: new SnakeNamingStrategy(),
     })
   ],

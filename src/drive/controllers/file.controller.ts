@@ -11,8 +11,7 @@ export class FileController {
     ) { }
 
     @Get(':id')
-    async getFile(@Param('id') id: string)
-        : Promise<Object> {
+    async getFile(@Param('id') id: string): Promise<Object> {
         return this.filesService.getById(id)
     }
 
