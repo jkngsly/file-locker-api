@@ -10,7 +10,6 @@ import { Folder } from 'src/database/folder.entity'
 import { Drive } from 'src/database/drive.entity'
 import { HaidaFile } from 'src/database/haida-file.entity'
 import { User } from 'src/database/user.entity'
-import { ResponseMiddleware } from 'src/middleware/pipes/ResponsePayload.pipes'
 
 @Module({
   imports: [
