@@ -16,13 +16,12 @@ export class FileController {
     }
 
     @Get(':id/download') 
-    async readFile(@Param('id') id: string) : Promise<StreamableFile> { 
+    async readFile(@Param('id') id: string): Promise<StreamableFile> { 
         return this.filesService.download(id)
     }
 
-    
     @Delete(':id') 
-    async delete(@Param('id') id: string) : Promise<void> { 
+    async delete(@Param('id') id: string): Promise<void> { 
         return this.filesService.delete(id)
     }
 
@@ -39,7 +38,6 @@ export class FileController {
             }),
         }),
     )
-
     async upload(@Body() dto: UploadDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
         await this.filesService.upload(files, dto.folderId)
     }
