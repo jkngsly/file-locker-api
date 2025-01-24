@@ -1,10 +1,10 @@
 import { BaseEntity } from './base.entity'
 import { Folder } from './folder.entity'
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity('files')
 export class HaidaFile extends BaseEntity { 
-    @Column()
+    @PrimaryGeneratedColumn()
     id: string 
 
     @Column()

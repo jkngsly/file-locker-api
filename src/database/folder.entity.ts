@@ -1,11 +1,14 @@
 import { Drive } from 'src/database/drive.entity'
 import { BaseEntity } from './base.entity'
 import { HaidaFile } from './haida-file.entity'
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Tree, TreeChildren, TreeLevelColumn, TreeParent } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, Tree, TreeChildren, TreeLevelColumn, TreeParent } from 'typeorm'
 
 @Entity('folders')
 @Tree("closure-table")
 export class Folder extends BaseEntity {
+    @PrimaryGeneratedColumn()
+    id: string
+    
     @Column()
     drive_id: string
 

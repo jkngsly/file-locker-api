@@ -1,10 +1,13 @@
 import { User } from 'src/database/user.entity'
 import { BaseEntity } from './base.entity'
 import { Folder } from './folder.entity'
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm'
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity('drives')
 export class Drive extends BaseEntity { 
+    @PrimaryGeneratedColumn()
+    id: string
+    
     @Column()
     user_id: string
 

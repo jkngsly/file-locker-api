@@ -10,6 +10,7 @@ import { Folder } from 'src/database/folder.entity'
 import { Drive } from 'src/database/drive.entity'
 import { HaidaFile } from 'src/database/haida-file.entity'
 import { User } from 'src/database/user.entity'
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -33,7 +34,9 @@ import { User } from 'src/database/user.entity'
       synchronize: false,
       logging: false,
       namingStrategy: new SnakeNamingStrategy(),
-    })
+    }),
+
+    AuthModule
   ],
   controllers: [AppController],
   providers: [
