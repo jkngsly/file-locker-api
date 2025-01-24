@@ -22,7 +22,7 @@ export class UsersService {
         return await this.usersRepository.findOne({ where: where })
     }
 
-    findAll(): User[] { 
-        return this.users;
+    async findAll(): Promise<User[]> { 
+        return await this.usersRepository.find();
     }
 } 
