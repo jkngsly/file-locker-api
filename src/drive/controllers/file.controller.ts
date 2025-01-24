@@ -3,6 +3,7 @@ import { UploadDTO } from '../dto/upload.dto'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { FilesService } from 'src/drive/services/files.service'
+import { FileSearchDTO } from '@/drive/dto/file-search.dto'
 
 @Controller('file')
 export class FileController {
@@ -39,7 +40,16 @@ export class FileController {
             }),
         }),
     )
+    
     async upload(@Body() dto: UploadDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
         await this.filesService.upload(files, dto.folderId)
+        // TODO: res
+    }
+
+    
+    @Post('search')
+    async search(@Body() dto: FileSearchDTO): Promise<void> {
+        const results = await this.filesService.search(dto)
+        return results
     }
 }

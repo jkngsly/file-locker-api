@@ -2,7 +2,7 @@ import session from "express-session"
 import { Inject, Injectable, StreamableFile } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { REQUEST } from "@nestjs/core"
-import { DataSource, Repository } from "typeorm"
+import { DataSource, Like, Repository } from "typeorm"
 import * as fs from 'fs'
 import { join, resolve } from "path"
 
@@ -17,6 +17,7 @@ import { UploadDTO } from "src/drive/dto/upload.dto"
 import { DriveService } from "src/drive/services/drive.service"
 import { BaseService } from "src/drive/services/base.service"
 import { time } from "console"
+import { FileSearchDTO } from "@/drive/dto/file-search.dto"
 
 interface FileQueryInterface {
     id?: string
@@ -234,5 +235,16 @@ export class FilesService extends BaseService {
                 })
             })
         })
+    }
+
+    async search(params: FileSearchDTO): Promise<any> {
+        let where = {};
+        for(const key in params) { 
+            where[key] = Like('%' + params[key] + '%')
+        }
+
+        console.log(where)
+
+        return await this.filesRepository.find({ where: where })
     }
 }
