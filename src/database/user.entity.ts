@@ -1,10 +1,10 @@
 import { BaseEntity } from './base.entity'
-import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm'
 import bcrypt from 'bcrypt'
 
 @Entity('users')
 export class User extends BaseEntity { 
-    @Column()
+    @Column({ unique: true })
     email!: string
 
     @Column()

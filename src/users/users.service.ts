@@ -14,7 +14,7 @@ export class UsersService {
     ) {}
 
     async create(user: CreateUserDto) { 
-        return await this.usersRepository.create(user)
+        await this.usersRepository.save(user)
     }
 
     async findOne(where): Promise<User> {

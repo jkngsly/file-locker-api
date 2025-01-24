@@ -1,13 +1,16 @@
+import { Expose } from 'class-transformer'
 import { isEmail, IsNotEmpty, IsString } from 'class-validator'
 
 export class CreateUserDto { 
     @IsNotEmpty()
     @IsString()
-    firstName: string
+    @Expose({ name: 'firstName' })
+    first_name: string
 
     @IsNotEmpty()
     @IsString()
-    lastName: string
+    @Expose({ name: 'lastName' })
+    last_name: string
 
     @IsNotEmpty()
     //@isEmail()
