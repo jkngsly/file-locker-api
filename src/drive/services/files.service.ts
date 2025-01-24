@@ -173,15 +173,10 @@ export class FilesService extends BaseService {
         })
     }
 
-    async download(id: string): Promise<StreamableFile> {
+    async download(id: string): Promise<any> {//Promise<StreamableFile> {
         const haidaFile: HaidaFile = await this.getById(id)
         // @ts-ignore // TODO: session object
-        const path = 'drive/' + this.request.session.defaultData['userId'] + '/' + haidaFile.path
-        return new StreamableFile(fs.createReadStream(join(process.cwd(), path)), {
-            type: 'application/json',
-            // @ts-ignore
-            disposition: 'attachment filename="' + haidaFile.name + '"',
-        })
+        return fs.createReadStream(join(process.cwd(), 'drive/' + this.request.session.defaultData['userId'] + '/' + haidaFile.path))
     }
 
     async delete(id: string) { 

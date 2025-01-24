@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles, StreamableFile, Param, Delete } from '@nestjs/common'
+import { Controller, Get, Post, Body, Req, Query, UseInterceptors, UploadedFiles, StreamableFile, Param, Delete, Res } from '@nestjs/common'
 import { UploadDTO } from '../dto/upload.dto'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
@@ -16,8 +16,9 @@ export class FileController {
     }
 
     @Get(':id/download') 
-    async readFile(@Param('id') id: string): Promise<StreamableFile> { 
-        return this.filesService.download(id)
+    async readFile(@Param('id') id: string, @Res() res: Response): Promise<StreamableFile> { 
+        const file = await this.filesService.download(id)
+        return file.pipe(res)
     }
 
     @Delete(':id') 
