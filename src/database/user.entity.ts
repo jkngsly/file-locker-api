@@ -1,6 +1,6 @@
 import { BaseEntity } from './base.entity'
 import { BeforeInsert, Column, Entity, OneToMany, PrimaryGeneratedColumn, Unique } from 'typeorm'
-import bcrypt from 'bcrypt'
+import * as bcrypt from 'bcryptjs'
 
 @Entity('users')
 export class User extends BaseEntity { 
@@ -19,6 +19,6 @@ export class User extends BaseEntity {
     @BeforeInsert()
     async hashPassword() { 
         const salt = await bcrypt.genSalt(10)
-        this.password = bcrypt.hash(this.password, salt)
+        this.password = await bcrypt.hash(this.password, salt)
     }
 }
