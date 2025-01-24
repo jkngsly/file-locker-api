@@ -4,9 +4,6 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 
 @Entity('files')
 export class HaidaFile extends BaseEntity { 
-    @PrimaryGeneratedColumn()
-    id: string 
-
     @Column()
     folder_id!: string
 

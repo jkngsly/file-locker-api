@@ -5,9 +5,6 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGene
 
 @Entity('drives')
 export class Drive extends BaseEntity { 
-    @PrimaryGeneratedColumn()
-    id: string
-    
     @Column()
     user_id: string
 

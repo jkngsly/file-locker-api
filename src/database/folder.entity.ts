@@ -6,9 +6,6 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 @Entity('folders')
 @Tree("closure-table")
 export class Folder extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id: string
-    
     @Column()
     drive_id: string
 
