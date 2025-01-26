@@ -13,7 +13,6 @@ export class UsersController {
         await this.usersService.create(createUserDto)
     }
 
-    
     @Post('update')
     async update(@Body() UpdateUserDto: UpdateUserDTO): Promise<any> { 
         await this.usersService.update(UpdateUserDto)

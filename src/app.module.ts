@@ -15,6 +15,7 @@ import { AuthModule } from './auth/auth.module';
 @Module({
   imports: [
     DriveModule,
+    AuthModule,
     ConfigModule.forRoot(),
 
     //TODO: BUG
@@ -36,7 +37,6 @@ import { AuthModule } from './auth/auth.module';
       namingStrategy: new SnakeNamingStrategy(),
     }),
 
-    AuthModule
   ],
   controllers: [AppController],
   providers: [
