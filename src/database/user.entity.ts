@@ -5,16 +5,21 @@ import * as bcrypt from 'bcryptjs'
 @Entity('users')
 export class User extends BaseEntity { 
     @Column({ unique: true })
-    email!: string
+    email: string
 
     @Column()
-    password!: string
+    password: string
 
     @Column()
-    first_name!: string 
+    first_name: string 
 
     @Column()
-    last_name!: string
+    last_name: string
+
+    @Column({
+        nullable: true
+    })
+    refresh_token: string
 
     @BeforeInsert()
     async hashPassword() { 

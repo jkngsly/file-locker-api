@@ -19,10 +19,10 @@ export class Folder extends BaseEntity {
     files: HaidaFile[]
 
     @Column()
-    name!: string
+    name: string
 
     @Column()
-    path!: string
+    path: string
 
     @TreeChildren()
     children: Folder[]

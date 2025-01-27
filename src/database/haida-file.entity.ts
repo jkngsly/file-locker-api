@@ -5,17 +5,17 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 @Entity('files')
 export class HaidaFile extends BaseEntity { 
     @Column()
-    folder_id!: string
+    folder_id: string
 
     @ManyToOne(() => Folder, (folder) => folder.id)
     @JoinColumn({ name: "folder_id" })
     folder: Folder
     
     @Column()
-    name!: string
+    name: string
 
     @Column()
-    path!: string
+    path: string
 
     @Column({
         default: false

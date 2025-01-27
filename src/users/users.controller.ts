@@ -16,7 +16,7 @@ export class UsersController {
 
     @Post('update')
     async update(@Body() UpdateUserDto: UpdateUserDTO): Promise<any> { 
-        await this.usersService.update(UpdateUserDto)
+        await this.usersService.update(UpdateUserDto.id, UpdateUserDto)
     }
 
     @Delete('delete')
