@@ -20,7 +20,9 @@ export class AuthService {
         if (!bcrypt.compare(user.password, password)) {
             throw new UnauthorizedException();
         } else {
-            return this.getTokens(user.id, user.email)
+            const tokens = await this.getTokens(user.id, user.email)
+            await this.updateRefreshToken(user.id, tokens.refreshToken)
+            return tokens
         }
     }
 
@@ -65,7 +67,7 @@ export class AuthService {
     }
 
     async refreshTokens(userId: string, refreshToken: string) {
-        const user = await this.usersService.findOne(userId);
+        const user = await this.usersService.findOne({ id: userId });
         if (!user || !user.refresh_token)
             throw new ForbiddenException('Access Denied');
 
@@ -78,6 +80,8 @@ export class AuthService {
     }
 
     async updateRefreshToken(userId: string, refreshToken: string) { 
-        this.usersService.update(userId, { refresh_token: refreshToken })
+        const result = await this.usersService.update({ id: userId, refresh_token: refreshToken })
+        console.log(result)
+        return result
     }
 }

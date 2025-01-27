@@ -20,8 +20,8 @@ export class UsersService {
         await this.usersRepository.save(user)
     }
 
-    async update(userId: string, user: any) { 
-        await this.usersRepository.update(user, { id: user.id })
+    async update(user: any) { 
+        await this.usersRepository.save(user)
     }
 
     async delete(id: string) { 

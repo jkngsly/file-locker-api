@@ -21,15 +21,11 @@ export class AuthController {
     @UseGuards(JwtRefreshGuard)
     @Get('refresh')
     refreshTokens(@Req() req: Request) {
-        
         // @ts-ignore (ノಠ益ಠ)ノ彡┻━┻ 
         const token = req.headers.authorization?.split(' ')[1]; 
-        console.log(token, req, "refresh")
-
-        /*
-        const userId = req.user['id'];
-        const refreshToken = req.user['refreshToken'];
-        return this.authService.refreshTokens(userId, refreshToken); */
+        // @ts-ignore (ノಠ益ಠ)ノ彡┻━┻ 
+        const userId = req.user['userId'];
+        return this.authService.refreshTokens(userId, token); 
     }
 
     @UseGuards(JwtAuthGuard)
