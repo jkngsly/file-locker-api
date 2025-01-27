@@ -22,5 +22,11 @@ export class AuthService {
             };
         }
     }
+
+    async verify(token: string) { 
+        return this.usersService.findOne({
+            email: await this.jwtService.verify(token).email
+        })
+    }
 }
  
