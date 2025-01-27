@@ -11,13 +11,14 @@ import { Drive } from 'src/database/drive.entity'
 import { HaidaFile } from 'src/database/haida-file.entity'
 import { User } from 'src/database/user.entity'
 import { AuthModule } from './auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
   imports: [
     DriveModule,
     AuthModule,
     ConfigModule.forRoot(),
-
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     //TODO: BUG
     /* There is an issue when trying to use this for npm run migration vs importing to app.module.ts
     The migration/entity paths are relative from where it is being ran, updating one breaks the other.
