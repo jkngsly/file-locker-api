@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Req, SetMetadata, UseGuards } from '@nestjs/common'
 import { AuthService } from 'src/auth/auth.service'
 import { LoginDTO } from '@/auth/dto/login.dto'
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 import { ExtractJwt } from 'passport-jwt';
 import { JwtRefreshGuard } from 'src/guards/jwt-refresh.guard';
+import { Public } from 'src/guards/public.decorator'
 
 @Controller('auth')
 export class AuthController {
@@ -12,6 +13,7 @@ export class AuthController {
         private authService: AuthService
     ){}
  
+    @Public()
     @Post('login')
     login(@Body() loginDto: LoginDTO) {
         return this.authService.login(loginDto.email, loginDto.password);
@@ -27,7 +29,6 @@ export class AuthController {
         return this.authService.refreshTokens(userId, token); 
     }
 
-    @UseGuards(JwtAuthGuard)
     @Get('verify')
     verify(@Req() req: Request) {
         // @ts-ignore (ノಠ益ಠ)ノ彡┻━┻ 

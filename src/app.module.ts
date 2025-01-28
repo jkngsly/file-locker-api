@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, RequestMethod, ValidationPipe} from '@nestjs/common'
-import { APP_PIPE } from '@nestjs/core'
+import { APP_GUARD, APP_PIPE } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { DriveModule } from './drive/drive.module'
@@ -12,6 +12,8 @@ import { HaidaFile } from 'src/database/haida-file.entity'
 import { User } from 'src/database/user.entity'
 import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard'
+import { JwtModule } from '@nestjs/jwt'
 
 @Module({
   imports: [
@@ -36,12 +38,15 @@ import { PassportModule } from '@nestjs/passport';
       synchronize: false,
       logging: false,
       namingStrategy: new SnakeNamingStrategy(),
-    }),
-
+    })
   ],
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
   ],
 })
 export class AppModule { }

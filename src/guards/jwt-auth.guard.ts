@@ -1,10 +1,23 @@
-import { Injectable, ExecutionContext } from '@nestjs/common';
+import { ExecutionContext, Injectable, CanActivate } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
+  constructor(private reflector: Reflector) {
+    super();
+  }
+
   canActivate(context: ExecutionContext) {
-    // Optionally, you can add custom logic here to determine whether to activate the guard
-    return super.canActivate(context);
+    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return true; // Allow access to public routes
+    }
+
+    return super.canActivate(context); // Otherwise, check JWT
   }
 }

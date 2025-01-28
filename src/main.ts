@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core'
+import { APP_GUARD, NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import { join } from 'path'
@@ -9,6 +9,7 @@ import RequestValidationPipe from '@/pipes/request-validation.pipe'
 //import { LoggingInterceptor } from 'src/drive/interceptors/logging.interceptor'
 import { ResponseInterceptor } from '@/interceptors/response-payload.interceptor';
 import { AllExceptionsFilter } from '@/http/exception-filter'
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)

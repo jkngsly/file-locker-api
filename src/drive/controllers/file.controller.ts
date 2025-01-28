@@ -4,6 +4,7 @@ import { FilesInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { FilesService } from 'src/drive/services/files.service'
 import { FileSearchDTO } from '@/drive/dto/file-search.dto'
+import { Public } from 'src/guards/public.decorator'
 
 @Controller('file')
 export class FileController {
@@ -16,6 +17,7 @@ export class FileController {
         return this.filesService.getById(id)
     }
 
+    @Public()
     @Get(':id/download') 
     async readFile(@Param('id') id: string, @Res() res: Response): Promise<StreamableFile> { 
         const file = await this.filesService.download(id)
