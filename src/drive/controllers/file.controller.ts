@@ -48,7 +48,6 @@ export class FileController {
         // TODO: res
     }
 
-    
     @Post('search')
     async search(@Body() dto: FileSearchDTO): Promise<void> {
         const results = await this.filesService.search(dto)
