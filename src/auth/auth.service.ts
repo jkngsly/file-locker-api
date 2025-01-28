@@ -34,29 +34,21 @@ export class AuthService {
         })
     }
 
-    async getTokens(userId: string, email: string) {
-        const [accessToken, refreshToken] = await Promise.all([
-            this.jwtService.signAsync(
-                {
-                    sub: userId,
-                    email,
-                },
-                {
-                    secret: process.env.JWT_ACCESS_SECRET,
-                    expiresIn: '5s',
-                },
-            ),
+    private async _generateToken(payload, refresh: boolean = false) { 
+        const tokenType = refresh ? "REFRESH" : "ACCESS"
+        return this.jwtService.signAsync(
+            payload, {
+                secret: process.env["JWT_" + tokenType + "_SECRET"],
+                expiresIn: process.env["JWT_" + tokenType + "_EXPIRE"]
+            }
+        )
+    }
 
-            this.jwtService.signAsync(
-                {
-                    sub: userId,
-                    email,
-                },
-                {
-                    secret: process.env.JWT_REFRESH_SECRET,
-                    expiresIn: '7d',
-                },
-            ),
+    async getTokens(userId: string, email: string) {
+        const payload = { sub: userId, email }
+        const [accessToken, refreshToken] = await Promise.all([
+            await this._generateToken(payload),
+            await this._generateToken(payload, true)
         ]);
 
         return {
@@ -81,7 +73,6 @@ export class AuthService {
 
     async updateRefreshToken(userId: string, refreshToken: string) { 
         const result = await this.usersService.update({ id: userId, refresh_token: refreshToken })
-        console.log(result)
         return result
     }
 }

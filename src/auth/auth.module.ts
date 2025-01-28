@@ -17,11 +17,7 @@ import { User } from '@/database/user.entity';
     TypeOrmModule.forFeature([User]),
     UsersModule,
     PassportModule,
-    JwtModule.register({
-      global: true,
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '60s' },
-    }),
+    JwtModule
   ],
   providers: [AuthService, UsersService, JwtStrategy, JwtRefreshStrategy],
   controllers: [AuthController]
