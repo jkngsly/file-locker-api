@@ -28,16 +28,16 @@ export abstract class BaseService {
 
         @Inject(FileStorage)
         protected storage: FileStorage,
-    ) {
-        this.user = this.requestContext.getUser()
-        console.log(this.user, "User (BaseService constructor)")
+    ) { }
+
+    protected _getUser() { 
+        return this.requestContext.getUser()
     }
 
     protected async _getDrive(): Promise<Drive> {
         
         const drive = await this.driveRepository.findOne({
-            // @ts-ignore TODO: Fix this
-            where: { user_id: this.user.id }
+            where: { user_id: this._getUser().id }
         })
 
         if (!drive) {
@@ -48,9 +48,6 @@ export abstract class BaseService {
     }
 
     protected async _getRootFolder(): Promise<Folder> {
-        
-        this.user = this.requestContext.getUser()
-        console.log(this.user, "getRootFolder")
         const drive: Drive = await this._getDrive()
 
         // Fetch the parent folder

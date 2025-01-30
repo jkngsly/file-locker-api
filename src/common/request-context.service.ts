@@ -7,11 +7,9 @@ export class RequestContext {
 
   setUser(user: User) {
     this.user = user;
-    console.log(this.user, "setUser")
   }
 
   getUser(): User {
-    console.log(this.user, "getUser")
     return this.user;
   }
 }

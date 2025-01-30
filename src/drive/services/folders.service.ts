@@ -37,7 +37,6 @@ export class FoldersService extends BaseService {
         super(requestContext, foldersRepository, driveRepository, storage)
     }
 
-    
     private async _write(folder: any) {
         // Create a new folder instance
         const newFolder = this.dataSource.manager.create(Folder, folder)
@@ -45,18 +44,18 @@ export class FoldersService extends BaseService {
         // Save the new folder in the database
         await this.dataSource.manager.save(Folder, newFolder)
 
-        // TODO: SEPARATE 
-        // @ts-ignore // TODO: session object
-        let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.user.id)
+        let rootDirectory: string = resolve(process.cwd(), 'drive/' + this._getUser().id)
         let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
 
-        // Perform additional operations like creating a directory on your storage system
+        // Write the directory
         fileStorage.createDirectory(newFolder.path)
     }
     
 
     async getTree(): Promise<any> {
         const folder = await this._getRootFolder()
+
+        console.log(this._getUser(), "getUser()")
 
         if (!folder) {
             throw new Error('folder not found')

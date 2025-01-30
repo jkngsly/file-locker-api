@@ -29,7 +29,7 @@ export class UsersService {
     }
 
     async findOne(where): Promise<User> {
-        return await this.usersRepository.findOne({ where: where })
+        return await this.usersRepository.findOne({ where: where, relations: ['drive']})
     }
 
     async findAll(): Promise<User[]> { 

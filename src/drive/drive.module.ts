@@ -25,13 +25,12 @@ import { PassportModule } from '@nestjs/passport'
 @Module({
     imports: [
         TypeOrmModule.forFeature([HaidaFile, Drive, Folder, User]),
-        
-            UsersModule,
-            PassportModule.register({ session: true }),
-            JwtModule,
+        UsersModule,
+        PassportModule.register({ session: true }),
+        JwtModule,
     ],
     controllers: [DrivesController, FileController, FoldersController],
     providers: [DriveService, FoldersService, FilesService, FileStorage, RequestContext],
-    exports: [DriveService, FoldersService, FilesService ],
+    exports: [DriveService, FoldersService, FilesService],
 })
 export class DriveModule {}
