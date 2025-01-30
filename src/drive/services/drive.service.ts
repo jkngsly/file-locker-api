@@ -8,10 +8,10 @@ import { Folder } from '@/database/folder.entity'
 import { Drive } from '@/database/drive.entity'
 import { BaseService } from './base.service'
 import { RequestContext } from "src/common/request-context.service"
+import { FoldersService } from "@/drive/services/folders.service"
 
 @Injectable()
 export class DriveService extends BaseService {
-
     constructor(
         protected readonly requestContext: RequestContext,
 
@@ -22,7 +22,9 @@ export class DriveService extends BaseService {
         protected readonly driveRepository: Repository<Drive>,
 
         @Inject(FileStorage)
-        protected storage: FileStorage
+        protected storage: FileStorage,
+
+        protected readonly foldersService: FoldersService
         
     ) { 
         super(requestContext, foldersRepository, driveRepository, storage)
@@ -30,22 +32,13 @@ export class DriveService extends BaseService {
 
     // TODO: Auth layer
     private driveId: string = "9e435bfb-69fa-48a6-bb0f-14840d9762b1"
-
-    /*
-    async create(dto: createDriveDTO): Promise<any> {
-        this.storage.createDirectory(dto.userId)
-
+    
+    async create(userId: string): Promise<any> {
         const drive = await this.driveRepository.save({
-            user_id: dto.userId
+            user_id: userId
         })
 
-        /*
-        return this.foldersService.create({
-            name: "root",
-            path: "",
-            level: 0,
-            drive: drive,
-            is_root: true
-        }) 
-    }*/
+        // Create drive Root
+        return await this.foldersService.createDriveRoot(drive)
+    }
 }

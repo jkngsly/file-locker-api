@@ -5,6 +5,7 @@ import { Repository } from 'typeorm'
 import { CreateUserDto } from '@/users/dto/create-user.dto';
 import { UpdateUserDTO } from '@/users/dto/update-user.dto';
 import { DeleteUserDTO } from '@/users/dto/delete-user.dto';
+import { DriveService } from '@/drive/services/drive.service';
 
 @Injectable()
 export class UsersService { 
@@ -13,11 +14,13 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+
+        protected driveService: DriveService
     ) {}
 
-    async create(user: CreateUserDto) { 
-        user = this.usersRepository.create(user)
-        await this.usersRepository.save(user)
+    async create(userData: CreateUserDto) { 
+        const user = await this.usersRepository.save(this.usersRepository.create(userData))
+        const drive = await this.driveService.create(user.id)
     }
 
     async update(user: any) { 

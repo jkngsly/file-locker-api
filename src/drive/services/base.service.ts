@@ -56,13 +56,19 @@ export abstract class BaseService {
         })
     }
 
-    protected async _getDrivePath(): Promise<string> {
-        return resolve(process.cwd(), 'drive/' + this._getUser().drive.id)
+    // TODO: support for multiple drives
+    protected async _getDrivePath(driveId: string): Promise<string> {
+        return resolve(process.cwd(), 'drive/' + driveId)
     }
 
-    protected async _initStorageAdapter(): Promise<FileStorage> {
+    // TODO: support for multiple drives
+    protected async _getLocalStoragePath(): Promise<string> {
+        return resolve(process.cwd(), process.env.LOCAL_STORAGE_PATH)
+    }
+
+    protected async _initStorageAdapter(basePath: string): Promise<FileStorage> {
         try { 
-            return new FileStorage(new LocalStorageAdapter(await this._getDrivePath()))
+            return new FileStorage(new LocalStorageAdapter(basePath))
         } catch(e) { 
             console.log(e);
         }

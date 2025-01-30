@@ -211,7 +211,7 @@ export class FilesService extends BaseService {
 
         files.forEach(async (file: Express.Multer.File) => {
             let filename = file.originalname
-            this.storage = await this._initStorageAdapter()
+            this.storage = await this._initStorageAdapter("TODO")
 
             //If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
             // Check for duplicates

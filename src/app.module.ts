@@ -58,6 +58,6 @@ import { UsersModule } from '@/users/users.module'
       useClass: UserInterceptor,
     },
   ],
-  exports: [RequestContext]
+  exports: [RequestContext, UsersModule, DriveModule]
 })
 export class AppModule { }

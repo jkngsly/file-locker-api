@@ -12,11 +12,13 @@ import { UsersModule } from '@/users/users.module';
 import { UsersService } from '@/users/users.service';
 import { User } from '@/database/user.entity';
 import { RequestContext } from 'src/common/request-context.service';
+import { DriveModule } from '@/drive/drive.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
     UsersModule,
+    DriveModule,
     PassportModule.register({ session: true }),
     JwtModule
   ],
