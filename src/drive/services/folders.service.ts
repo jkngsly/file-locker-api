@@ -39,11 +39,11 @@ export class FoldersService extends BaseService {
 
     private async _write(folder: any, createDriveRoot=false) {
         // Create a new folder instance
-        const newFolder = this.dataSource.manager.create(Folder, folder)
+        let newFolder = this.dataSource.manager.create(Folder, folder)
 
         // Save the new folder in the database
-        await this.dataSource.manager.save(Folder, newFolder)
-
+        newFolder = await this.dataSource.manager.save(Folder, newFolder)
+        console.log(newFolder)
         let rootPath: string
         if(createDriveRoot) { 
             rootPath = await this._getLocalStoragePath() + `/${folder.drive.id}`            
@@ -89,6 +89,10 @@ export class FoldersService extends BaseService {
             // @ts-ignore // TODO: session object
             where: { user_id: this._getUser().id },
         })
+
+        if (!drive) {
+            throw new Error('Drive not found')
+        }
      
         // Fetch the parent folder
         const parentFolder = await this.foldersRepository.findOne({
