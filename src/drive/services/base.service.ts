@@ -15,8 +15,6 @@ import { RequestContext } from "src/common/request-context.service"
 
 @Injectable()
 export abstract class BaseService {
-    user: User
-
     constructor(
         protected readonly requestContext: RequestContext,
      
@@ -59,8 +57,7 @@ export abstract class BaseService {
     }
 
     protected async _getDrivePath(): Promise<string> {
-        // @ts-ignore  (ノಠ益ಠ)ノ彡┻━┻ 
-        return resolve(process.cwd(), 'drive/' + this.user.id)
+        return resolve(process.cwd(), 'drive/' + this._getUser().drive.id)
     }
 
     protected async _initStorageAdapter(): Promise<FileStorage> {

@@ -55,8 +55,6 @@ export class FoldersService extends BaseService {
     async getTree(): Promise<any> {
         const folder = await this._getRootFolder()
 
-        console.log(this._getUser(), "getUser()")
-
         if (!folder) {
             throw new Error('folder not found')
         }
@@ -67,16 +65,18 @@ export class FoldersService extends BaseService {
     async create(dto: createFolderDTO): Promise<any> {
         let parentFolder: Folder | undefined = undefined
 
+        /*
         // Find the associated drive
         const drive = await this.dataSource.manager.findOne(Drive, {
             // @ts-ignore // TODO: session object
             where: { user_id: this.user.id },
         })
-
+        */
+       const drive = this._getUser().drive;
         if (!drive) {
             throw new Error('Drive not found')
         }
-
+       
         let path = ""
         let level = 0
 
