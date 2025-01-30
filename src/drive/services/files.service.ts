@@ -43,6 +43,8 @@ export class FilesService extends BaseService {
         protected storage: FileStorage,
     ) { 
         super(foldersRepository, driveRepository, request, storage)
+
+        storage = new FileStorage(new LocalStorageAdapter("drive/bbb1adf5-bfbc-45ec-a131-61c97595e8be")); // TODO
     }
 
     private  _getExtension(filename: string): string|false { 
@@ -125,6 +127,7 @@ export class FilesService extends BaseService {
     private async _write(file: Express.Multer.File, path: string): Promise<void> {
         try {
             const contents = fs.createReadStream(file.path)
+            console.log(contents)
             return this.storage.write(path, contents)
         } catch (err) {
             if (err instanceof UnableToWriteFile) {
@@ -206,6 +209,7 @@ export class FilesService extends BaseService {
             throw new Error('Folder not found')
         }
 
+        console.log(files, folder)
         files.forEach(async (file: Express.Multer.File) => {
             let filename = file.originalname
             this.storage = await this._initStorageAdapter()
@@ -217,7 +221,7 @@ export class FilesService extends BaseService {
             }
 
             const path = folder.path + "/" + filename
-
+            console.log(path)
             this._write(file, path)
             .then(() => {
                 // Remove the file from /tmp

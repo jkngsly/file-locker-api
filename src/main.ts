@@ -10,6 +10,7 @@ import RequestValidationPipe from '@/pipes/request-validation.pipe'
 import { ResponseInterceptor } from '@/interceptors/response-payload.interceptor';
 import { AllExceptionsFilter } from '@/http/exception-filter'
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard'
+import { JwtService } from '@nestjs/jwt'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
@@ -22,27 +23,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
   //app.useGlobalFilters(new AllExceptionsFilter());
 
-  app.use(
-    cors(),
-
-    // TODO: auth
-    session({
-      secret: 'my-secret',
-      resave: false,
-      saveUninitialized: false,
-    }),
-
-    // TODO: middleware
-    (req, res, next) => {
-      if (!req.session.initialized) {
-        req.session.initialized = true 
-        req.session.defaultData = {
-          userId: 'bbb1adf5-bfbc-45ec-a131-61c97595e8be',
-          driveId: 'c44ec9ac-09aa-4cca-b26c-f9ac3a2d741f'
-        }
-      }
-      next()
-  })
+  app.use(cors())
 
   await app.listen(process.env.PORT ?? 4000)
 }

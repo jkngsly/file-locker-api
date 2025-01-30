@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Request } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -16,7 +16,7 @@ import { User } from '@/database/user.entity';
   imports: [
     TypeOrmModule.forFeature([User]),
     UsersModule,
-    PassportModule,
+    PassportModule.register({ session: true }),
     JwtModule
   ],
   providers: [AuthService, UsersService, JwtStrategy, JwtRefreshStrategy],

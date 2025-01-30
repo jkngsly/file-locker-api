@@ -1,14 +1,22 @@
-import { ForbiddenException, HttpException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common'
+import { ForbiddenException, HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common'
 import { UsersService } from '@/users/users.service'
 import * as bcrypt from 'bcryptjs'
 import { JwtService } from '@nestjs/jwt';
+import { User } from '@/database/user.entity';
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 
 @Injectable()
 export class AuthService {
+    user: User
+
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService
-    ) { }
+    ) { 
+        
+    }
 
     async login(email: string, password: string): Promise<any> {
         const user = await this.usersService.findOne({ "email": email })
@@ -36,6 +44,9 @@ export class AuthService {
 
     private async _generateToken(payload, refresh: boolean = false) { 
         const tokenType = refresh ? "REFRESH" : "ACCESS"
+        console.log({
+            secret: process.env["JWT_" + tokenType + "_SECRET"],
+            expiresIn: process.env["JWT_" + tokenType + "_EXPIRE"]})
         return this.jwtService.signAsync(
             payload, {
                 secret: process.env["JWT_" + tokenType + "_SECRET"],
