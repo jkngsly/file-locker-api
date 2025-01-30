@@ -11,19 +11,23 @@ import { ResponseInterceptor } from '@/interceptors/response-payload.interceptor
 import { AllExceptionsFilter } from '@/http/exception-filter'
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard'
 import { JwtService } from '@nestjs/jwt'
+import { UserInterceptor } from 'src/common/user.interceptor'
+import { RequestContext } from 'src/common/request-context.service'
+import { UsersService } from '@/users/users.service'
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule)
   app.useStaticAssets(join(__dirname, '..', 'public'))
 
+  app.use(cors())
+  app.useGlobalInterceptors(
+    new UserInterceptor(await app.resolve(RequestContext), app.get(UsersService)),
+    new ResponseInterceptor()
+  );
+
   // DTO validation for all controller methods
   app.useGlobalPipes(RequestValidationPipe);
-  
-  // Standard response payload format, including exceptions
-  app.useGlobalInterceptors(new ResponseInterceptor());
   //app.useGlobalFilters(new AllExceptionsFilter());
-
-  app.use(cors())
 
   await app.listen(process.env.PORT ?? 4000)
 }

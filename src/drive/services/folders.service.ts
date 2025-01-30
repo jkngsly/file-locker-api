@@ -12,6 +12,7 @@ import { LocalStorageAdapter } from "@flystorage/local-fs"
 import { Folder } from "@/database/folder.entity"
 import { Drive } from "@/database/drive.entity"
 import { HaidaFile } from "@/database/haida-file.entity"
+import { RequestContext } from "src/common/request-context.service"
 
 interface FolderQueryInterface {
     id?: string
@@ -20,24 +21,20 @@ interface FolderQueryInterface {
 @Injectable()
 export class FoldersService extends BaseService {
     constructor(
+        protected readonly requestContext: RequestContext,
+        
         @InjectRepository(Folder)
         protected readonly foldersRepository: Repository<Folder>,
         
         @InjectRepository(Drive)
         protected readonly driveRepository: Repository<Drive>,
 
-        @InjectRepository(HaidaFile)
-        private filesRepository: Repository<HaidaFile>,
-
-        @Inject(REQUEST)
-        protected readonly request: Request,
-
         @Inject(FileStorage)
         protected storage: FileStorage,
 
         private readonly dataSource: DataSource
     ) { 
-        super(foldersRepository, driveRepository, request, storage)
+        super(requestContext, foldersRepository, driveRepository, storage)
     }
 
     
@@ -50,7 +47,7 @@ export class FoldersService extends BaseService {
 
         // TODO: SEPARATE 
         // @ts-ignore // TODO: session object
-        let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.request.session.defaultData['userId'])
+        let rootDirectory: string = resolve(process.cwd(), 'drive/' + this.user.id)
         let fileStorage = new FileStorage(new LocalStorageAdapter(rootDirectory))
 
         // Perform additional operations like creating a directory on your storage system
@@ -74,7 +71,7 @@ export class FoldersService extends BaseService {
         // Find the associated drive
         const drive = await this.dataSource.manager.findOne(Drive, {
             // @ts-ignore // TODO: session object
-            where: { user_id: this.request.session.defaultData['userId'] },
+            where: { user_id: this.user.id },
         })
 
         if (!drive) {

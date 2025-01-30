@@ -1,42 +1,34 @@
 import session from "express-session"
 
 import { Inject, Injectable, StreamableFile } from '@nestjs/common'
-import { resolve } from 'path'
 import { FileStorage, DirectoryListing, UnableToWriteFile } from '@flystorage/file-storage'
-import { LocalStorageAdapter } from '@flystorage/local-fs'
-import { DataSource, Repository, SelectQueryBuilder } from 'typeorm'
+import { Repository } from 'typeorm'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Folder } from '@/database/folder.entity'
 import { Drive } from '@/database/drive.entity'
 import { BaseService } from './base.service'
-import { HaidaFile } from '@/database/haida-file.entity'
-import { REQUEST } from "@nestjs/core"
+import { RequestContext } from "src/common/request-context.service"
 
 @Injectable()
 export class DriveService extends BaseService {
+
     constructor(
+        protected readonly requestContext: RequestContext,
+
         @InjectRepository(Folder)
         protected readonly foldersRepository: Repository<Folder>,
         
         @InjectRepository(Drive)
         protected readonly driveRepository: Repository<Drive>,
 
-        @InjectRepository(HaidaFile)
-        private filesRepository: Repository<HaidaFile>,
-
-        @Inject(REQUEST)
-        protected readonly request: Request,
-
         @Inject(FileStorage)
-        protected storage: FileStorage,
-
-        private readonly dataSource: DataSource
+        protected storage: FileStorage
+        
     ) { 
-        super(foldersRepository, driveRepository, request, storage)
+        super(requestContext, foldersRepository, driveRepository, storage)
     }
 
     // TODO: Auth layer
-    private userId: string = "bbb1adf5-bfbc-45ec-a131-61c97595e8be"
     private driveId: string = "9e435bfb-69fa-48a6-bb0f-14840d9762b1"
 
     /*

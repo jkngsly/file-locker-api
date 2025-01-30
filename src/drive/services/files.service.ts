@@ -18,6 +18,7 @@ import { DriveService } from "src/drive/services/drive.service"
 import { BaseService } from "src/drive/services/base.service"
 import { time } from "console"
 import { FileSearchDTO } from "@/drive/dto/file-search.dto"
+import { RequestContext } from "src/common/request-context.service"
 
 interface FileQueryInterface {
     id?: string
@@ -26,24 +27,24 @@ interface FileQueryInterface {
 
 @Injectable()
 export class FilesService extends BaseService {
+
     constructor(
+        protected readonly requestContext: RequestContext,
+
         @InjectRepository(Folder)
         protected readonly foldersRepository: Repository<Folder>,
         
         @InjectRepository(Drive)
         protected readonly driveRepository: Repository<Drive>,
 
-        @InjectRepository(HaidaFile)
-        private filesRepository: Repository<HaidaFile>,
-
-        @Inject(REQUEST)
-        protected readonly request: Request,
-
         @Inject(FileStorage)
         protected storage: FileStorage,
+                
+        @InjectRepository(HaidaFile)
+        private filesRepository: Repository<HaidaFile>
     ) { 
-        super(foldersRepository, driveRepository, request, storage)
-
+        super(requestContext, foldersRepository, driveRepository, storage)
+        
         storage = new FileStorage(new LocalStorageAdapter("drive/bbb1adf5-bfbc-45ec-a131-61c97595e8be")); // TODO
     }
 
@@ -127,7 +128,6 @@ export class FilesService extends BaseService {
     private async _write(file: Express.Multer.File, path: string): Promise<void> {
         try {
             const contents = fs.createReadStream(file.path)
-            console.log(contents)
             return this.storage.write(path, contents)
         } catch (err) {
             if (err instanceof UnableToWriteFile) {
@@ -179,8 +179,9 @@ export class FilesService extends BaseService {
 
     async download(id: string): Promise<any> {//Promise<StreamableFile> {
         const haidaFile: HaidaFile = await this.getById(id)
+
         // @ts-ignore // TODO: session object
-        return fs.createReadStream(join(process.cwd(), 'drive/' + this.request.session.defaultData['userId'] + '/' + haidaFile.path))
+        return fs.createReadStream(join(process.cwd(), 'drive/bbb1adf5-bfbc-45ec-a131-61c97595e8be/' + haidaFile.path))
     }
 
     async delete(id: string) { 
@@ -201,15 +202,13 @@ export class FilesService extends BaseService {
             folder = await this._getRootFolder()
         } else {
             // Validate the folder ID belongs to the user 
-            // @ts-ignore // TODO: session object
-            folder = await this.dateSource.manager.findOne(Folder, { where: { user_id: this.request.session.defaultData['userId'], id: folderId }})
+            folder = await this.foldersRepository.manager.findOne(Folder, { where: { id: folderId }})
         }
 
         if(!folder) {
             throw new Error('Folder not found')
         }
 
-        console.log(files, folder)
         files.forEach(async (file: Express.Multer.File) => {
             let filename = file.originalname
             this.storage = await this._initStorageAdapter()
@@ -221,7 +220,6 @@ export class FilesService extends BaseService {
             }
 
             const path = folder.path + "/" + filename
-            console.log(path)
             this._write(file, path)
             .then(() => {
                 // Remove the file from /tmp
@@ -246,8 +244,6 @@ export class FilesService extends BaseService {
         for(const key in params) { 
             where[key] = Like('%' + params[key] + '%')
         }
-
-        console.log(where)
 
         return await this.filesRepository.find({ where: where })
     }

@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, RequestMethod, ValidationPipe} from '@nestjs/common'
-import { APP_GUARD, APP_PIPE } from '@nestjs/core'
+import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { DriveModule } from './drive/drive.module'
@@ -14,11 +14,16 @@ import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard'
 import { JwtModule } from '@nestjs/jwt'
+import { UsersService } from '@/users/users.service'
+import { RequestContext } from 'src/common/request-context.service'
+import { UserInterceptor } from 'src/common/user.interceptor'
+import { UsersModule } from '@/users/users.module'
 
 @Module({
   imports: [
-    DriveModule,
     AuthModule,
+    DriveModule,
+    UsersModule,
     ConfigModule.forRoot(),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     //TODO: BUG
@@ -43,10 +48,16 @@ import { JwtModule } from '@nestjs/jwt'
   controllers: [AppController],
   providers: [
     AppService,
+    RequestContext,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: UserInterceptor,
+    },
   ],
+  exports: [RequestContext]
 })
 export class AppModule { }

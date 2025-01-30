@@ -14,7 +14,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') implements CanActivate {
       context.getClass(),
     ]);
 
-    console.log("Jwt")
+    const request = context.switchToHttp().getRequest();
 
     if (isPublic) {
       return true; // Allow access to public routes

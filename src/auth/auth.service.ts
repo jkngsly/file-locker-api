@@ -6,6 +6,7 @@ import { User } from '@/database/user.entity';
 import { REQUEST } from '@nestjs/core';
 import { Request } from 'express';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { RequestContext } from 'src/common/request-context.service';
 
 @Injectable()
 export class AuthService {
@@ -13,7 +14,8 @@ export class AuthService {
 
     constructor(
         private usersService: UsersService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private readonly requestContext: RequestContext
     ) { 
         
     }
@@ -36,7 +38,7 @@ export class AuthService {
 
     async verify(token: string) {
         const decoded = await this.jwtService.verify(token, { secret: process.env.JWT_ACCESS_SECRET});
-   
+
         return this.usersService.findOne({
             email: decoded.email
         })
@@ -44,9 +46,6 @@ export class AuthService {
 
     private async _generateToken(payload, refresh: boolean = false) { 
         const tokenType = refresh ? "REFRESH" : "ACCESS"
-        console.log({
-            secret: process.env["JWT_" + tokenType + "_SECRET"],
-            expiresIn: process.env["JWT_" + tokenType + "_EXPIRE"]})
         return this.jwtService.signAsync(
             payload, {
                 secret: process.env["JWT_" + tokenType + "_SECRET"],

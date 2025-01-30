@@ -11,6 +11,7 @@ import { JwtRefreshStrategy } from "./strategies/jwt-refresh.strategy"
 import { UsersModule } from '@/users/users.module';
 import { UsersService } from '@/users/users.service';
 import { User } from '@/database/user.entity';
+import { RequestContext } from 'src/common/request-context.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { User } from '@/database/user.entity';
     PassportModule.register({ session: true }),
     JwtModule
   ],
-  providers: [AuthService, UsersService, JwtStrategy, JwtRefreshStrategy],
+  providers: [AuthService, UsersService, JwtStrategy, JwtRefreshStrategy, RequestContext],
   controllers: [AuthController]
 })
 export class AuthModule {}
