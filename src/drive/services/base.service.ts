@@ -32,26 +32,11 @@ export abstract class BaseService {
         return this.requestContext.getUser()
     }
 
-    protected async _getDrive(): Promise<Drive> {
-        
-        const drive = await this.driveRepository.findOne({
-            where: { user_id: this._getUser().id }
-        })
-
-        if (!drive) {
-            throw new Error('Drive not found')
-        }
-
-        return drive
-    }
-
     protected async _getRootFolder(): Promise<Folder> {
-        const drive: Drive = await this._getDrive()
-
         // Fetch the parent folder
         return await this.foldersRepository.findOne({
             where: {
-                drive_id: drive.id, is_root: true
+                drive_id: this._getUser().drive.id, is_root: true
             }
         })
     }

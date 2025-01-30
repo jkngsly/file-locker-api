@@ -43,7 +43,7 @@ export class FoldersService extends BaseService {
 
         // Save the new folder in the database
         newFolder = await this.dataSource.manager.save(Folder, newFolder)
-        console.log(newFolder)
+
         let rootPath: string
         if(createDriveRoot) { 
             rootPath = await this._getLocalStoragePath() + `/${folder.drive.id}`            
@@ -79,6 +79,7 @@ export class FoldersService extends BaseService {
                 parent: null, // If no parent, it's a root folder
                 level: 0,
                 drive: drive,
+                is_root: true
             }, true)
     }
 

@@ -20,15 +20,13 @@ export class FoldersController {
 
     @Get(':id/files')
     async getFolderFiles(@Param() query: GetFoldersDTO): Promise<HaidaFile[]> {
-        // TODO: validate user ownership/access to folder
-        // TODO: get business logic out of controller
-        // TODO: use pipe transform request/resp and account for root folder (no id)
-        // @ts-ignore
         return this.filesService.getByFolderId(query.id == "root" ? undefined : query.id)
     }
 
     @Post('create')
-    async create(@Body() dto: createFolderDTO): Promise<any> { // TODO: promise return type
-        return this.foldersService.create(dto)
+    async create(@Body() body: createFolderDTO): Promise<any> {
+        return this.foldersService.create(body) // TODO: return success msg
     }
+
+    //TODO Move, update
 }
