@@ -82,50 +82,32 @@ export class FoldersService extends BaseService {
             }, true)
     }
 
-    async create(dto: createFolderDTO): Promise<any> {
-        let parentFolder: Folder | undefined = undefined
+    async create(folder: createFolderDTO): Promise<any> {
 
-        /*
         // Find the associated drive
         const drive = await this.dataSource.manager.findOne(Drive, {
             // @ts-ignore // TODO: session object
-            where: { user_id: this.user.id },
+            where: { user_id: this._getUser().id },
         })
-        */
-       const drive = this._getUser().drive;
-        if (!drive) {
-            throw new Error('Drive not found')
-        }
-       
-        let path = ""
-        let level = 0
+     
+        // Fetch the parent folder
+        const parentFolder = await this.foldersRepository.findOne({
+            where: { id: folder.parentId },
+        })
 
-        // Check if there is a parent folder
-        if (dto.parentId) {
-            // Fetch the parent folder
-            parentFolder = await this.foldersRepository.findOne({
-                where: { id: dto.parentId },
-            })
-
-            if (!parentFolder) {
-                throw new Error('Parent folder not found')
-            }
-
-            // Construct the path based on the parent folder's path
-            path += `${parentFolder.path}/`
-            level = parentFolder.level + 1  // Increment level based on the parent folder's level
-        } else {
-            parentFolder = await this._getRootFolder()
+        if (!parentFolder) {
+            throw new Error('Parent folder not found')
         }
 
-        // Add the new folder's name to the path
-        path += `${dto.name}`
-
+        // Construct the path based on the parent folder's path
+        let path = `${parentFolder.path}/${folder.name}`
+        let level = parentFolder.level + 1  // Increment level based on the parent folder's level
+     
         this._write(
             {
-                name: dto.name,
+                name: folder.name,
                 path: path,
-                parent: parentFolder || null, // If no parent, it's a root folder
+                parent: parentFolder,
                 level: level,
                 drive: drive,
             })

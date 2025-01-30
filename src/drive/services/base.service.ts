@@ -58,7 +58,7 @@ export abstract class BaseService {
 
     // TODO: support for multiple drives
     protected async _getDrivePath(driveId: string): Promise<string> {
-        return resolve(process.cwd(), 'drive/' + driveId)
+        return resolve(process.cwd(), `${process.env.LOCAL_STORAGE_PATH}/${driveId})`)
     }
 
     // TODO: support for multiple drives
