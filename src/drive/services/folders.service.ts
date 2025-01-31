@@ -45,9 +45,12 @@ export class FoldersService extends BaseService {
         newFolder = await this.dataSource.manager.save(Folder, newFolder)
 
         let rootPath: string
+        // TODO: um... not right now, but definitely soon
         if(createDriveRoot) { 
+            // Create the "Home" or Root folder (used when creating a new drive)
             rootPath = await this._getLocalStoragePath() + `/${folder.drive.id}`            
         } else { 
+            // Create a new folder in an existing folder 
             rootPath = await this._getDrivePath(folder.drive.id)
         }
 
@@ -69,8 +72,6 @@ export class FoldersService extends BaseService {
     }
 
     async createDriveRoot(drive: Drive) { 
-        
-        await this._initStorageAdapter(await this._getLocalStoragePath())
         // Create drive folder ex: `drives/{id}` 
         await this._write(
             {
@@ -85,9 +86,8 @@ export class FoldersService extends BaseService {
 
     async create(folder: createFolderDTO): Promise<any> {
 
-        // Find the associated drive
+        // TODO: Multiple drive support
         const drive = await this.dataSource.manager.findOne(Drive, {
-            // @ts-ignore // TODO: session object
             where: { user_id: this._getUser().id },
         })
 

@@ -33,7 +33,6 @@ export abstract class BaseService {
     }
 
     protected async _getRootFolder(): Promise<Folder> {
-        // Fetch the parent folder
         return await this.foldersRepository.findOne({
             where: {
                 drive_id: this._getUser().drive.id, is_root: true
@@ -41,12 +40,10 @@ export abstract class BaseService {
         })
     }
 
-    // TODO: support for multiple drives
     protected async _getDrivePath(driveId: string): Promise<string> {
         return resolve(process.cwd(), `${process.env.LOCAL_STORAGE_PATH}/${driveId}`)
     }
 
-    // TODO: support for multiple drives
     protected async _getLocalStoragePath(): Promise<string> {
         return resolve(process.cwd(), process.env.LOCAL_STORAGE_PATH)
     }
