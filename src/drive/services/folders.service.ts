@@ -56,7 +56,7 @@ export class FoldersService extends BaseService {
         // Create drive folder ex: `drives/{id}` 
         await this._write(
             {
-                name: "root",
+                name: "Home",
                 path: "",
                 parent: null, // If no parent, it's a root folder
                 level: 0,
