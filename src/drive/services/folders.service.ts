@@ -37,30 +37,17 @@ export class FoldersService extends BaseService {
         super(requestContext, foldersRepository, driveRepository, storage)
     }
 
-    private async _write(folder: any, createDriveRoot=false) {
-        // Create a new folder instance
-        let newFolder = this.dataSource.manager.create(Folder, folder)
-
+    private async _write(folder: any) {
         // Save the new folder in the database
-        newFolder = await this.dataSource.manager.save(Folder, newFolder)
+        await this.dataSource.manager.save(Folder, 
+            this.dataSource.manager.create(Folder, folder)
+        )
 
-        let rootPath: string
-        // TODO: um... not right now, but definitely soon
-        if(createDriveRoot) { 
-            // Create the "Home" or Root folder (used when creating a new drive)
-            rootPath = await this._getLocalStoragePath() + `/${folder.drive.id}`            
-        } else { 
-            // Create a new folder in an existing folder 
-            rootPath = await this._getDrivePath(folder.drive.id)
-        }
-
-        let fileStorage = await this._initStorageAdapter(rootPath);
-
-        // Write the directory
-        await fileStorage.createDirectory(newFolder.path)
+        // Write the directory 
+        const fileStorage = await this._initStorageAdapter(process.env.LOCAL_STORAGE_PATH);
+        fileStorage.createDirectory(folder.drive.id + "/" + folder.path)
     }
     
-
     async getTree(): Promise<any> {
         const folder = await this._getRootFolder()
 
@@ -81,7 +68,7 @@ export class FoldersService extends BaseService {
                 level: 0,
                 drive: drive,
                 is_root: true
-            }, true)
+            })
     }
 
     async create(folder: createFolderDTO): Promise<any> {
