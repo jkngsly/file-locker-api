@@ -19,6 +19,7 @@ import { BaseService } from "src/drive/services/base.service"
 import { time } from "console"
 import { FileSearchDTO } from "@/drive/dto/file-search.dto"
 import { RequestContext } from "src/common/request-context.service"
+import { FoldersService } from "@/drive/services/folders.service"
 
 interface FileQueryInterface {
     id?: string
@@ -34,18 +35,19 @@ export class FilesService extends BaseService {
         @InjectRepository(Folder)
         protected readonly foldersRepository: Repository<Folder>,
         
-        @InjectRepository(Drive)
-        protected readonly driveRepository: Repository<Drive>,
-
-        @Inject(FileStorage)
-        protected storage: FileStorage,
+        protected readonly foldersService: FoldersService,
                 
         @InjectRepository(HaidaFile)
-        private filesRepository: Repository<HaidaFile>
+        private filesRepository: Repository<HaidaFile>,
+
+        private fileStorage: FileStorage
     ) { 
-        super(requestContext, foldersRepository, driveRepository, storage)
-        
-        storage = new FileStorage(new LocalStorageAdapter("drive/bbb1adf5-bfbc-45ec-a131-61c97595e8be")); // TODO
+        super(requestContext, foldersRepository)
+    }
+
+    // Sets the working directory for the FileStorage adapter
+    private async _setStorageDirectory(path: string) { 
+        this.fileStorage = await this._initStorageAdapter(path)
     }
 
     private  _getExtension(filename: string): string|false { 
@@ -83,7 +85,7 @@ export class FilesService extends BaseService {
      */
     private async _exists(path: string): Promise<boolean> { 
         try { 
-            return this.storage.fileExists(path)
+            return this.fileStorage.fileExists(path)
         } catch(e) { 
             if (e instanceof UnableToCheckFileExistence) {
                 console.log("ERROR", e)
@@ -128,7 +130,7 @@ export class FilesService extends BaseService {
     private async _write(file: Express.Multer.File, path: string): Promise<void> {
         try {
             const contents = fs.createReadStream(file.path)
-            return this.storage.write(path, contents)
+            return this.fileStorage.write(path, contents)
         } catch (err) {
             if (err instanceof UnableToWriteFile) {
                 console.log(err)
@@ -196,22 +198,20 @@ export class FilesService extends BaseService {
     }
 
     async upload(files: Array<Express.Multer.File>, folderId: string) {
-        let folder = undefined
-            
-        if(!folderId || folderId == "root") { 
-            folder = await this._getRootFolder()
-        } else {
-            // Validate the folder ID belongs to the user 
-            folder = await this.foldersRepository.manager.findOne(Folder, { where: { id: folderId }})
-        }
-
+        const folder = await this.foldersService.findOne({ id: folderId })
+        
         if(!folder) {
             throw new Error('Folder not found')
         }
 
+        console.log(folder)
+        
+        throw new Error('Folder not found')
+
         files.forEach(async (file: Express.Multer.File) => {
             let filename = file.originalname
-            this.storage = await this._initStorageAdapter("TODO")
+
+           // this.storage = await this._initStorageAdapter(this._getDrivePath(folder.drive.id))
 
             //If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
             // Check for duplicates

@@ -31,18 +31,15 @@ export class FileController {
 
     @Post('upload')
     @UseInterceptors(
-        // TODO: Max file count config
-        FilesInterceptor('files[]', 10, {
+        FilesInterceptor('files[]', parseInt(process.env.HAIDA_DRIVE_MAX_UPLOAD_COUNT) || 10, {
             storage: diskStorage({
                 destination: 'tmp',
                 filename: (req, file, cb) => {
-                    // Generate a unique filename here
                     cb(null, `${Date.now()}-${file.originalname}`)
                 },
             }),
         }),
     )
-    
     async upload(@Body() dto: UploadDTO, @UploadedFiles() files: Array<Express.Multer.File>): Promise<void> {
         await this.filesService.upload(files, dto.folderId)
         // TODO: res

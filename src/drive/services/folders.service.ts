@@ -22,24 +22,18 @@ interface FolderQueryInterface {
 export class FoldersService extends BaseService {
     constructor(
         protected readonly requestContext: RequestContext,
-        
+
         @InjectRepository(Folder)
         protected readonly foldersRepository: Repository<Folder>,
-        
-        @InjectRepository(Drive)
-        protected readonly driveRepository: Repository<Drive>,
-
-        @Inject(FileStorage)
-        protected storage: FileStorage,
 
         private readonly dataSource: DataSource
-    ) { 
-        super(requestContext, foldersRepository, driveRepository, storage)
+    ) {
+        super(requestContext, foldersRepository)
     }
 
     private async _write(folder: any) {
         // Save the new folder in the database
-        await this.dataSource.manager.save(Folder, 
+        await this.dataSource.manager.save(Folder,
             this.dataSource.manager.create(Folder, folder)
         )
 
@@ -47,7 +41,7 @@ export class FoldersService extends BaseService {
         const fileStorage = await this._initStorageAdapter(process.env.LOCAL_STORAGE_PATH);
         fileStorage.createDirectory(folder.drive.id + "/" + folder.path)
     }
-    
+
     async getTree(): Promise<any> {
         const folder = await this._getRootFolder()
 
@@ -58,7 +52,7 @@ export class FoldersService extends BaseService {
         return await this.dataSource.manager.getTreeRepository(Folder).findDescendantsTree(folder)
     }
 
-    async createDriveRoot(drive: Drive) { 
+    async createDriveRoot(drive: Drive) {
         // Create drive folder ex: `drives/{id}` 
         await this._write(
             {
@@ -81,7 +75,7 @@ export class FoldersService extends BaseService {
         if (!drive) {
             throw new Error('Drive not found')
         }
-     
+
         // Fetch the parent folder
         const parentFolder = await this.foldersRepository.findOne({
             where: { id: folder.parentId },
@@ -94,7 +88,7 @@ export class FoldersService extends BaseService {
         // Construct the path based on the parent folder's path
         let path = `${parentFolder.path}/${folder.name}`
         let level = parentFolder.level + 1  // Increment level based on the parent folder's level
-     
+
         this._write(
             {
                 name: folder.name,
@@ -103,5 +97,9 @@ export class FoldersService extends BaseService {
                 level: level,
                 drive: drive,
             })
+    }
+
+    async findOne(where): Promise<Folder> {
+        return await this.foldersRepository.findOne({ where: where, relations: ['drive']})
     }
 }

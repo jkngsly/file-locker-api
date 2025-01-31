@@ -17,17 +17,14 @@ export class DriveService extends BaseService {
 
         @InjectRepository(Folder)
         protected readonly foldersRepository: Repository<Folder>,
-        
+
         @InjectRepository(Drive)
         protected readonly driveRepository: Repository<Drive>,
 
-        @Inject(FileStorage)
-        protected storage: FileStorage,
-
+        @Inject(FoldersService)
         protected readonly foldersService: FoldersService
-        
     ) { 
-        super(requestContext, foldersRepository, driveRepository, storage)
+        super(requestContext, foldersRepository)
     }
 
     // TODO: Auth layer

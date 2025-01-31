@@ -20,12 +20,6 @@ export abstract class BaseService {
      
         @InjectRepository(Folder)
         protected foldersRepository: Repository<Folder>,
-
-        @InjectRepository(Drive)
-        protected driveRepository: Repository<Drive>,
-
-        @Inject(FileStorage)
-        protected storage: FileStorage,
     ) { }
 
     protected _getUser() { 
