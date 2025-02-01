@@ -46,8 +46,8 @@ export class FilesService extends BaseService {
     }
 
     // Sets the working directory for the FileStorage adapter
-    private async _setStorageDirectory(path: string) { 
-        this.fileStorage = await this._initStorageAdapter(path)
+    private async _setStorageDirectory(drive: Drive) { 
+        this.fileStorage = await this._initStorageAdapter(process.env.LOCAL_STORAGE_PATH + `/${drive.id}`)
     }
 
     private  _getExtension(filename: string): string|false { 
@@ -204,14 +204,11 @@ export class FilesService extends BaseService {
             throw new Error('Folder not found')
         }
 
-        console.log(folder)
-        
-        throw new Error('Folder not found')
+        //TODO: adjust "/" (being sent from client?)
+        await this._setStorageDirectory(folder.drive)
 
         files.forEach(async (file: Express.Multer.File) => {
             let filename = file.originalname
-
-           // this.storage = await this._initStorageAdapter(this._getDrivePath(folder.drive.id))
 
             //If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
             // Check for duplicates
