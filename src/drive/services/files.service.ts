@@ -180,11 +180,12 @@ export class FilesService extends BaseService {
         })
     }
 
-    async download(id: string): Promise<any> {//Promise<StreamableFile> {
+    /*
+    *   TODO: controller has no authentication
+    */
+    async download(id: string): Promise<any> {
         const haidaFile: HaidaFile = await this.getById(id)
         const folder: Folder = await this.foldersService.findOne({id: haidaFile.folder_id })
-
-        // @ts-ignore // TODO: session object
         return fs.createReadStream(await this._getDrivePath(folder.drive.id) + "/" + haidaFile.path)
     }
 
@@ -212,7 +213,6 @@ export class FilesService extends BaseService {
         files.forEach(async (file: Express.Multer.File) => {
             let filename = file.originalname
 
-            //If a duplicate path exists, it will be renamed according to FilesService._getDuplicateRename()
             // Check for duplicates
             if(await this._exists(folder.path + filename)) { 
                 filename = await this._getDuplicateRename(filename, folder.path)
