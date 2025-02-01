@@ -128,6 +128,7 @@ export class FilesService extends BaseService {
      * @returns Returns a void Promise
      */
     private async _write(file: Express.Multer.File, path: string): Promise<void> {
+        console.log("_write")
         try {
             const contents = fs.createReadStream(file.path)
             return this.fileStorage.write(path, contents)
@@ -181,9 +182,10 @@ export class FilesService extends BaseService {
 
     async download(id: string): Promise<any> {//Promise<StreamableFile> {
         const haidaFile: HaidaFile = await this.getById(id)
+        const folder: Folder = await this.foldersService.findOne({id: haidaFile.folder_id })
 
         // @ts-ignore // TODO: session object
-        return fs.createReadStream(join(process.cwd(), 'drive/bbb1adf5-bfbc-45ec-a131-61c97595e8be/' + haidaFile.path))
+        return fs.createReadStream(await this._getDrivePath(folder.drive.id) + "/" + haidaFile.path)
     }
 
     async delete(id: string) { 
@@ -206,7 +208,7 @@ export class FilesService extends BaseService {
 
         //TODO: adjust "/" (being sent from client?)
         await this._setStorageDirectory(folder.drive)
-
+        console.log("here?")
         files.forEach(async (file: Express.Multer.File) => {
             let filename = file.originalname
 
